@@ -1,0 +1,639 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Bot Manager" %} - Social Cube{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --grid-gap: 1.5rem;
+    --card-radius: 0.75rem;
+    --transition-speed: 0.3s;
+    --card-shadow: 0 4px 6px rgba(27, 91, 126, 0.1);
+    --card-shadow-hover: 0 8px 16px rgba(27, 91, 126, 0.15);
+}
+
+.bot-dashboard {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(auto, 2fr);
+    gap: var(--grid-gap);
+    padding: 1.5rem;
+    height: calc(100vh - var(--navbar-height) - var(--footer-height) - 3rem);
+    max-height: calc(100vh - var(--navbar-height) - var(--footer-height) - 3rem);
+}
+
+/* Left Sidebar */
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
+}
+
+.system-status {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--color-1);
+    box-shadow: var(--card-shadow);
+    transition: all var(--transition-speed) ease;
+}
+
+.system-status:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-1);
+}
+
+.status-header i {
+    font-size: 1.5rem;
+    color: var(--color-4);
+    transition: transform var(--transition-speed) ease;
+}
+
+.system-status:hover .status-header i {
+    transform: rotate(-10deg);
+}
+
+.status-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-5);
+    margin: 0;
+}
+
+.status-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--color-4);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.metric-bar {
+    height: 8px;
+    background: var(--color-1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.metric-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--color-3), var(--color-4));
+    border-radius: 4px;
+    transition: width var(--transition-speed) ease;
+    position: relative;
+}
+
+.metric-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.metric-value {
+    font-size: 1rem;
+    color: var(--color-5);
+    font-weight: 600;
+}
+
+/* Main Content */
+.dashboard-main {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: var(--grid-gap);
+    overflow: hidden;
+}
+
+.bot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--grid-gap);
+    overflow-y: auto;
+    padding-right: 0.75rem;
+}
+
+.bot-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bot-grid::-webkit-scrollbar-track {
+    background: var(--color-1);
+    border-radius: 3px;
+}
+
+.bot-grid::-webkit-scrollbar-thumb {
+    background: var(--color-3);
+    border-radius: 3px;
+}
+
+.bot-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--color-4);
+}
+
+.bot-card {
+    background: white;
+    border-radius: var(--card-radius);
+    border: 1px solid var(--color-1);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.bot-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--color-3), var(--color-4));
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.bot-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-3);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.bot-card:hover::before {
+    opacity: 1;
+}
+
+.bot-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.bot-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.bot-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-5);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.bot-name i {
+    color: var(--color-4);
+    transition: transform var(--transition-speed) ease;
+}
+
+.bot-card:hover .bot-name i {
+    transform: rotate(-10deg);
+}
+
+.bot-platform {
+    font-size: 0.875rem;
+    color: var(--color-3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bot-platform i {
+    font-size: 0.75rem;
+}
+
+.bot-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+}
+
+.bot-card:hover .bot-status {
+    transform: scale(1.05);
+}
+
+.bot-status.active {
+    background: rgba(74, 154, 176, 0.1);
+    color: var(--color-4);
+}
+
+.bot-status.inactive {
+    background: rgba(164, 194, 219, 0.1);
+    color: var(--color-3);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.active .status-dot {
+    background: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.active .status-dot::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    border: 2px solid #4CAF50;
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+    75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.inactive .status-dot {
+    background: var(--color-3);
+    box-shadow: 0 0 0 2px rgba(164, 194, 219, 0.2);
+}
+
+.bot-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.bot-metric {
+    background: rgba(164, 194, 219, 0.1);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    transition: all var(--transition-speed) ease;
+}
+
+.bot-card:hover .bot-metric {
+    background: rgba(74, 154, 176, 0.1);
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-5);
+    line-height: 1;
+    margin-bottom: 0.375rem;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--color-4);
+}
+
+.bot-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
+}
+
+.btn-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-100%);
+    transition: transform var(--transition-speed) ease;
+}
+
+.btn-action:hover::before {
+    transform: translateX(0);
+}
+
+.btn-action.primary {
+    background: var(--color-4);
+    color: white;
+}
+
+.btn-action.primary:hover {
+    background: var(--color-5);
+    transform: translateY(-2px);
+}
+
+.btn-action.secondary {
+    background: rgba(164, 194, 219, 0.1);
+    color: var(--color-4);
+}
+
+.btn-action.secondary:hover {
+    background: rgba(74, 154, 176, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-action.danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-action.danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: var(--card-radius);
+    border: 1px solid var(--color-1);
+    box-shadow: var(--card-shadow);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--color-3);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    color: var(--color-5);
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    color: var(--color-3);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.empty-state .btn-primary {
+    background: var(--color-4);
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    transition: all var(--transition-speed) ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.empty-state .btn-primary:hover {
+    background: var(--color-5);
+    transform: translateY(-2px);
+}
+
+.add-bot-button {
+    position: fixed;
+    bottom: calc(var(--footer-height) + 2rem);
+    right: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--color-4);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 6px rgba(27, 91, 126, 0.2);
+    transition: all var(--transition-speed) ease;
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.add-bot-button:hover {
+    background: var(--color-5);
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 6px 12px rgba(27, 91, 126, 0.3);
+}
+
+@media (max-width: 1200px) {
+    .bot-dashboard {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+    }
+
+    .dashboard-sidebar {
+        position: sticky;
+        top: 1rem;
+    }
+
+    .bot-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .bot-dashboard {
+        padding: 1rem;
+    }
+
+    .system-status,
+    .bot-card {
+        padding: 1rem;
+    }
+
+    .bot-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bot-actions {
+        flex-direction: column;
+    }
+
+    .add-bot-button {
+        bottom: calc(var(--footer-height) + 1rem);
+        right: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bot-dashboard">
+    <!-- Left Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="system-status">
+            <div class="status-header">
+                <i class="fas fa-server"></i>
+                <h2 class="status-title">{% trans "System Status" %}</h2>
+            </div>
+            <div class="status-metrics">
+                <div class="metric-item">
+                    <div class="metric-label">
+                        <span>{% trans "CPU Usage" %}</span>
+                        <span class="metric-value">{{ cpu_usage|default:"0" }}%</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: {{ cpu_usage|default:'0' }}%"></div>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">
+                        <span>{% trans "Memory Usage" %}</span>
+                        <span class="metric-value">{{ memory_usage|default:"0" }}%</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: {{ memory_usage|default:'0' }}%"></div>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">
+                        <span>{% trans "Network Load" %}</span>
+                        <span class="metric-value">{{ network_load|default:"0" }}%</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: {{ network_load|default:'0' }}%"></div>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">
+                        <span>{% trans "Storage" %}</span>
+                        <span class="metric-value">{{ storage_usage|default:"0" }}%</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: {{ storage_usage|default:'0' }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="bot-grid">
+            {% for bot in bots %}
+            <div class="bot-card" onclick="window.location.href='{% url 'bot_detail' bot.id %}'">
+                <div class="bot-header">
+                    <div class="bot-info">
+                        <h3 class="bot-name">
+                            <i class="fas fa-robot"></i>
+                            {{ bot.name }}
+                        </h3>
+                        <span class="bot-platform">
+                            <i class="fas fa-globe"></i>
+                            {{ bot.platform }}
+                        </span>
+                    </div>
+                    <div class="bot-status {% if bot.is_active %}active{% else %}inactive{% endif %}">
+                        <span class="status-dot"></span>
+                        <span>{% if bot.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+                    </div>
+                </div>
+
+                <div class="bot-metrics">
+                    <div class="bot-metric">
+                        <div class="metric-value">{{ bot.user_count|default:"0" }}</div>
+                        <div class="metric-label">{% trans "Users" %}</div>
+                    </div>
+                    <div class="bot-metric">
+                        <div class="metric-value">{{ bot.command_count|default:"0" }}</div>
+                        <div class="metric-label">{% trans "Commands" %}</div>
+                    </div>
+                </div>
+
+                <div class="bot-actions">
+                    <form action="{% url 'bot_toggle' bot.id %}" method="post" class="d-inline" style="flex: 1;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action {% if bot.is_active %}danger{% else %}primary{% endif %} w-100">
+                            <i class="fas {% if bot.is_active %}fa-stop{% else %}fa-play{% endif %}"></i>
+                            {% if bot.is_active %}{% trans "Stop" %}{% else %}{% trans "Start" %}{% endif %}
+                        </button>
+                    </form>
+                    <a href="{% url 'bot_detail' bot.id %}" class="btn-action secondary">
+                        <i class="fas fa-cog"></i>
+                        {% trans "Settings" %}
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>{% trans "No Bots Yet" %}</h3>
+                <p>{% trans "Create your first bot to start automating your social media presence." %}</p>
+                <a href="{% url 'bot_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    {% trans "Create Bot" %}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<!-- Floating Add Bot Button -->
+<a href="{% url 'bot_create' %}" class="add-bot-button">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %} 

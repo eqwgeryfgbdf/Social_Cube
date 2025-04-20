@@ -1,0 +1,555 @@
+/* Minecraft Style Container */
+.minecraft-style-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Minecraft Header */
+.minecraft-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.minecraft-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.minecraft-subtitle {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Minecraft Cards Grid */
+.minecraft-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Minecraft Card */
+.minecraft-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.minecraft-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-header i {
+    color: #1976d2;
+}
+
+.card-content {
+    padding: 1rem;
+}
+
+/* Information Rows */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.info-value {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Requirement Rows */
+.requirement-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.requirement-row:last-child {
+    border-bottom: none;
+}
+
+.requirement-row i {
+    color: #1976d2;
+    width: 16px;
+}
+
+/* Stats Rows */
+.stat-row {
+    margin-bottom: 1rem;
+}
+
+.stat-row:last-child {
+    margin-bottom: 0;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.stat-bar {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: #2196f3;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    gap: 0.375rem;
+}
+
+.status-badge.active {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.inactive {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.active .status-dot {
+    background: #2e7d32;
+    box-shadow: 0 0 0 2px #e8f5e9;
+}
+
+.inactive .status-dot {
+    background: #c62828;
+    box-shadow: 0 0 0 2px #ffebee;
+}
+
+/* Minecraft Action Bar */
+.minecraft-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    align-items: center;
+}
+
+.minecraft-action-bar .minecraft-button {
+    flex: 0 1 auto;
+    min-width: 140px;
+    margin: 0;
+}
+
+.minecraft-action-bar .ms-auto {
+    margin-left: auto !important;
+}
+
+@media (max-width: 768px) {
+    .minecraft-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .minecraft-action-bar .minecraft-button {
+        width: 100%;
+    }
+    
+    .minecraft-action-bar .ms-auto {
+        order: 999;
+        margin-top: 1rem;
+    }
+}
+
+.minecraft-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Minecraft', sans-serif;
+    font-size: 1rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: var(--minecraft-button-bg);
+    color: var(--minecraft-button-text);
+    text-shadow: 2px 2px var(--minecraft-button-shadow);
+    box-shadow: inset -2px -4px var(--minecraft-button-shadow),
+                inset 2px 2px var(--minecraft-button-highlight);
+}
+
+.minecraft-button:hover {
+    transform: translateY(-2px);
+    box-shadow: inset -2px -4px var(--minecraft-button-shadow),
+                inset 2px 2px var(--minecraft-button-highlight),
+                0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.minecraft-button:active {
+    transform: translateY(0);
+    box-shadow: inset -1px -2px var(--minecraft-button-shadow),
+                inset 1px 1px var(--minecraft-button-highlight);
+}
+
+.minecraft-button i {
+    margin-right: 0.5rem;
+}
+
+.minecraft-button-primary {
+    --minecraft-button-bg: #4CAF50;
+    --minecraft-button-text: #FFFFFF;
+    --minecraft-button-shadow: #2E7D32;
+    --minecraft-button-highlight: #81C784;
+}
+
+.minecraft-button-success {
+    --minecraft-button-bg: #2196F3;
+    --minecraft-button-text: #FFFFFF;
+    --minecraft-button-shadow: #1976D2;
+    --minecraft-button-highlight: #64B5F6;
+}
+
+.minecraft-button-info {
+    --minecraft-button-bg: #9C27B0;
+    --minecraft-button-text: #FFFFFF;
+    --minecraft-button-shadow: #7B1FA2;
+    --minecraft-button-highlight: #BA68C8;
+}
+
+.minecraft-button-danger {
+    --minecraft-button-bg: #F44336;
+    --minecraft-button-text: #FFFFFF;
+    --minecraft-button-shadow: #D32F2F;
+    --minecraft-button-highlight: #E57373;
+}
+
+/* Minecraft Modal */
+.minecraft-modal {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.minecraft-modal .modal-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1rem;
+}
+
+.minecraft-modal .modal-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.minecraft-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.minecraft-modal .modal-footer {
+    border-top: 1px solid #e0e0e0;
+    padding: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Minecraft Input */
+.minecraft-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+}
+
+.minecraft-input:focus {
+    border-color: #1976d2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+/* Loading Animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Bot Grid Layout */
+.bot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.bot-card {
+    background: #f5f5f5;
+    border: 2px solid #c6c6c6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.bot-card:hover {
+    border-color: #4CAF50;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bot-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.active .status-dot {
+    background-color: #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+.inactive .status-dot {
+    background-color: #f44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.5);
+}
+
+.bot-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.bot-name-cell i {
+    color: #1976d2;
+    font-size: 1.25rem;
+}
+
+.bot-name-cell span {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.bot-description-cell {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.bot-card-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+}
+
+.bot-stat {
+    text-align: center;
+}
+
+.bot-stat .label {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.bot-stat .value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.bot-requirements {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+}
+
+.requirement-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: #555;
+}
+
+.requirement-item i {
+    color: #1976d2;
+    width: 16px;
+}
+
+.bot-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.last-active-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.install-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.install-button:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.add-bot-card {
+    background: #fff;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-bot-card:hover {
+    border-color: #4CAF50;
+    color: #4CAF50;
+    transform: translateY(-4px);
+}
+
+.add-bot-card .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.add-bot-card .text {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .bot-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .bot-card-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+} 
