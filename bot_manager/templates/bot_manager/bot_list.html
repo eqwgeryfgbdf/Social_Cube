@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Bot Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modern-minimal.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <h1 class="dashboard-title">{% trans "Bot Dashboard" %}</h1>
+        <p class="dashboard-subtitle">{% trans "Monitor and manage your social media bots with real-time analytics and controls." %}</p>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- System Overview Card -->
+        <div class="dashboard-card overview-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-server"></i>
+                    {% trans "System Overview" %}
+                </h2>
+                <div class="health-badge {% if system_health > 80 %}good{% elif system_health > 50 %}warning{% else %}critical{% endif %}">
+                    <i class="fas fa-circle"></i>
+                    {% if system_health > 80 %}
+                        {% trans "Healthy" %}
+                    {% elif system_health > 50 %}
+                        {% trans "Warning" %}
+                    {% else %}
+                        {% trans "Critical" %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-label">{% trans "CPU Usage" %}</span>
+                            <span class="metric-value">{{ cpu_usage|default:"0" }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: {{ cpu_usage|default:'0' }}%"></div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="cpuChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-label">{% trans "Memory Usage" %}</span>
+                            <span class="metric-value">{{ memory_usage|default:"0" }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: {{ memory_usage|default:'0' }}%"></div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="memoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bot Statistics Card -->
+        <div class="dashboard-card stats-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-chart-line"></i>
+                    {% trans "Bot Statistics" %}
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="stats-summary">
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-value">{{ active_bots|default:"0" }}</span>
+                            <span class="summary-label">{% trans "Active Bots" %}</span>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-value">{{ total_users|default:"0" }}</span>
+                            <span class="summary-label">{% trans "Total Users" %}</span>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-value">{{ messages_today|default:"0" }}</span>
+                            <span class="summary-label">{% trans "Messages Today" %}</span>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-value">{{ uptime|default:"0" }}%</span>
+                            <span class="summary-label">{% trans "Uptime" %}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container large">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Bots Card -->
+        <div class="dashboard-card bots-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-robot"></i>
+                    {% trans "Active Bots" %}
+                </h2>
+                <a href="{% url 'bot_create' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i>
+                    {% trans "Add Bot" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if bots %}
+                <div class="bot-list">
+                    {% for bot in bots %}
+                    <div class="bot-item">
+                        <div class="bot-status {% if bot.is_active %}active{% else %}inactive{% endif %}">
+                            <span class="status-dot"></span>
+                        </div>
+                        <div class="bot-info">
+                            <h3 class="bot-name">{{ bot.name }}</h3>
+                            <p class="bot-platform">{{ bot.platform }}</p>
+                        </div>
+                        <div class="bot-metrics">
+                            <div class="bot-metric">
+                                <span class="metric-value">{{ bot.user_count }}</span>
+                                <span class="metric-label">{% trans "Users" %}</span>
+                            </div>
+                            <div class="bot-metric">
+                                <span class="metric-value">{{ bot.command_count }}</span>
+                                <span class="metric-label">{% trans "Commands" %}</span>
+                            </div>
+                        </div>
+                        <div class="bot-actions">
+                            <form action="{% url 'bot_toggle' bot.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-icon {% if bot.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                    <i class="fas {% if bot.is_active %}fa-stop{% else %}fa-play{% endif %}"></i>
+                                </button>
+                            </form>
+                            <a href="{% url 'bot_detail' bot.id %}" class="btn btn-icon btn-primary">
+                                <i class="fas fa-cog"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>{% trans "No Bots Yet" %}</h3>
+                    <p>{% trans "Create your first bot to start automating your social media presence." %}</p>
+                    <a href="{% url 'bot_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        {% trans "Create Bot" %}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CPU Usage Chart
+    const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+    new Chart(cpuCtx, {
+        type: 'line',
+        data: {
+            labels: ['1h', '2h', '3h', '4h', '5h', 'Now'],
+            datasets: [{
+                label: 'CPU Usage',
+                data: [30, 35, 25, 45, 30, {{ cpu_usage|default:"0" }}],
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    display: false
+                },
+                x: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Memory Usage Chart
+    const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+    new Chart(memoryCtx, {
+        type: 'line',
+        data: {
+            labels: ['1h', '2h', '3h', '4h', '5h', 'Now'],
+            datasets: [{
+                label: 'Memory Usage',
+                data: [40, 45, 35, 50, 45, {{ memory_usage|default:"0" }}],
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    display: false
+                },
+                x: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Activity Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    new Chart(activityCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Messages',
+                data: [1200, 1900, 1500, 1800, 2000, 1700, {{ messages_today|default:"0" }}],
+                borderColor: '#FF9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Users',
+                data: [500, 520, 540, 560, 580, 590, {{ total_users|default:"0" }}],
+                borderColor: '#9C27B0',
+                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

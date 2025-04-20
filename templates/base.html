@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+{% load static %}
+{% load i18n %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Social Cube{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+    :root {
+        --color-1: #a4c2db;
+        --color-2: #73b1c9;
+        --color-3: #4a9ab0;
+        --color-4: #2b7e9c;
+        --color-5: #1b5b7e;
+        --navbar-height: 7.5rem;
+        --footer-height: 2.5rem;
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+    }
+
+    .navbar {
+        height: var(--navbar-height);
+        background: var(--color-5);
+        padding: 0.75rem 1rem;
+        box-shadow: 0 2px 4px rgba(27, 91, 126, 0.1);
+    }
+
+    .navbar-brand {
+        color: var(--color-1) !important;
+        font-size: 1.25rem;
+        transition: all var(--transition-speed) ease;
+        padding: 0.625rem 0.875rem;
+        border-radius: 0.5rem;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .navbar-brand::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(164, 194, 219, 0.1);
+        transform: translateX(-100%);
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .navbar-brand:hover {
+        color: white !important;
+        transform: translateY(-1px);
+    }
+
+    .navbar-brand:hover::before {
+        transform: translateX(0);
+    }
+
+    .navbar-brand i {
+        font-size: 1.375rem;
+    }
+
+    .navbar-brand:hover i {
+        transform: rotate(-10deg);
+    }
+
+    .nav-item {
+        margin: 0 0.25rem;
+    }
+
+    .nav-link {
+        color: var(--color-2) !important;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem !important;
+        border-radius: 0.5rem;
+        transition: all var(--transition-speed) ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(115, 177, 201, 0.1);
+        transform: translateX(-100%);
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .nav-link:hover {
+        color: white !important;
+        transform: translateY(-1px);
+    }
+
+    .nav-link:hover::before {
+        transform: translateX(0);
+    }
+
+    .nav-link i {
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .nav-link:hover i {
+        transform: translateY(-2px);
+    }
+
+    .nav-link.active {
+        color: white !important;
+        background: var(--color-4);
+        box-shadow: 0 2px 4px rgba(27, 91, 126, 0.1);
+    }
+
+    .nav-link.active:hover {
+        background: var(--color-3);
+    }
+
+    .main-content {
+        flex: 1;
+        padding-bottom: var(--footer-height);
+    }
+
+    .footer {
+        height: var(--footer-height);
+        background: var(--color-5);
+        color: var(--color-2);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem !important;
+        box-shadow: 0 -2px 4px rgba(27, 91, 126, 0.1);
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+
+    .footer-links {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .footer-link {
+        color: var(--color-2);
+        text-decoration: none;
+        transition: all var(--transition-speed) ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .footer-link:hover {
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .footer-link i {
+        font-size: 0.9rem;
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .footer-link:hover i {
+        transform: translateY(-1px);
+    }
+
+    .alert {
+        margin: 0.5rem 0;
+        padding: 0.75rem 1.25rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(27, 91, 126, 0.1);
+        animation: slideInDown 0.3s ease-out;
+    }
+
+    .alert-dismissible .btn-close {
+        padding: 0.9rem 1rem;
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .alert-dismissible .btn-close:hover {
+        transform: rotate(90deg);
+    }
+
+    @keyframes slideInDown {
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .container-xl {
+        max-width: 1440px;
+        padding: 0 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .navbar-brand {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        .footer {
+            padding: 0 1rem !important;
+        }
+
+        .footer-links {
+            gap: 1rem;
+        }
+    }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'bot_list' %}">
+                <i class="fas fa-cube me-2"></i>Social Cube
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'bot_list' %}active{% endif %}" 
+                           href="{% url 'bot_list' %}">
+                            <i class="fas fa-robot me-1"></i>{% trans "Bots" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" 
+                           href="{% url 'about' %}">
+                            <i class="fas fa-info-circle me-1"></i>{% trans "About" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" 
+                           href="{% url 'contact' %}">
+                            <i class="fas fa-envelope me-1"></i>{% trans "Contact" %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% if messages %}
+        <div class="container mt-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="container-xl">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="{% url 'about' %}" class="footer-link">
+                <i class="fas fa-info-circle"></i>
+                {% trans "About" %}
+            </a>
+            <a href="{% url 'contact' %}" class="footer-link">
+                <i class="fas fa-envelope"></i>
+                {% trans "Contact" %}
+            </a>
+        </div>
+        <span>© {% now "Y" %} Social Cube</span>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
