@@ -1,13 +1,20 @@
-name: Social_Cube
+name: social_cube
 channels:
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.11
   - django=4.2
-  - pip=23.1
+  - pip
   - pip:
-    - "discord.py==2.3.2"
-    - "python-dotenv==1.0.0"
-    - "django-crispy-forms==2.0"
-    - "crispy-bootstrap5==0.7" 
+    - django-crispy-forms
+    - django-environ
+    - whitenoise
+    - gunicorn
+    # Test dependencies
+    - pytest
+    - pytest-django
+    - pytest-cov
+    - pytest-xdist
+    - factory-boy
+    - faker 
