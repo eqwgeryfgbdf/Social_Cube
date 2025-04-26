@@ -1,0 +1,131 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ bot.name }} - Discord Bot Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3">
+            <i class="bx bxs-bot"></i> {{ bot.name }}
+            <span class="badge {% if bot.status %}bg-success{% else %}bg-danger{% endif %}">
+                {{ bot.status|yesno:"Online,Offline" }}
+            </span>
+        </h1>
+        <p class="text-muted">{{ bot.description }}</p>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary">
+                <i class="bx bx-cog"></i> Settings
+            </button>
+            <button type="button" class="btn btn-danger">
+                <i class="bx bx-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Servers Section -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bx bxs-server"></i> Connected Servers
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for server in servers %}
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ server.name }}</h6>
+                            <small>{{ server.member_count }} members</small>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bx bx-server bx-lg"></i>
+                        <p class="mt-2">No servers connected yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commands Section -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bx bx-command"></i> Available Commands
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for command in commands %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ command.name }}</h6>
+                            <small class="text-muted">{{ command.created_at|date }}</small>
+                        </div>
+                        <p class="mb-1">{{ command.description }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bx bx-command bx-lg"></i>
+                        <p class="mt-2">No commands configured</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Section -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bx bx-history"></i> Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Server</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                <td>
+                                    <span class="badge {% if log.type == 'ERROR' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {{ log.type }}
+                                    </span>
+                                </td>
+                                <td>{{ log.server.name }}</td>
+                                <td>{{ log.content }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">
+                                    No activity logs available
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

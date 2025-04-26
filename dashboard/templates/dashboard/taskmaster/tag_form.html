@@ -1,0 +1,39 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if tag %}Edit Tag: {{ tag.name }}{% else %}Create New Tag{% endif %} | Taskmaster
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">
+                        {% if tag %}Edit Tag: {{ tag.name }}{% else %}Create New Tag{% endif %}
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {{ form.name|as_crispy_field }}
+                        {{ form.color|as_crispy_field }}
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'dashboard:taskmaster:tag_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

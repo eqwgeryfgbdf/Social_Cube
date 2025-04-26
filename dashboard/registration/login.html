@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Discord Bot Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bx bx-log-in-circle"></i> Login
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <a href="{% url 'dashboard:oauth2_login' %}" class="btn btn-primary btn-lg">
+                        <i class="bx bxl-discord-alt"></i> Login with Discord
+                    </a>
+                </div>
+                <div class="text-center text-muted">
+                    <small>By logging in, you agree to our Terms of Service and Privacy Policy.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

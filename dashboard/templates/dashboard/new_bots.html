@@ -1,0 +1,274 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}我的機器人 - Discord機器人管理{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">儀表板</a></li>
+            <li class="breadcrumb-item active">機器人管理</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">機器人管理</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBotModal">
+            <i class="fas fa-plus me-2"></i>新增機器人
+        </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="searchBot" placeholder="搜尋機器人...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="statusFilter">
+                        <option value="all">所有狀態</option>
+                        <option value="active">運行中</option>
+                        <option value="inactive">已停用</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sortFilter">
+                        <option value="newest">最新添加</option>
+                        <option value="oldest">最早添加</option>
+                        <option value="name">名稱排序</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bots List -->
+    <div class="row" id="botsList">
+        {% if bots %}
+            {% for bot in bots %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ bot.avatar_url }}" alt="{{ bot.name }}" class="rounded-circle me-3" width="48" height="48">
+                            <div>
+                                <h5 class="card-title mb-0">{{ bot.name }}</h5>
+                                <small class="text-muted">ID: {{ bot.id }}</small>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="badge {% if bot.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ bot.is_active|yesno:"運行中,已停用" }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted d-block">前綴：{{ bot.prefix }}</small>
+                            <small class="text-muted d-block">伺服器數：{{ bot.server_count }}</small>
+                            <small class="text-muted d-block">指令使用：{{ bot.command_usage }}</small>
+                            <small class="text-muted d-block">最後活動：{{ bot.last_active|timesince }}</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="location.href='{% url 'bot_settings' bot.id %}'">
+                                    <i class="fas fa-cog me-1"></i>管理
+                                </button>
+                                <button class="btn btn-sm btn-outline-{% if bot.is_active %}danger{% else %}success{% endif %} toggle-bot" 
+                                        data-bot-id="{{ bot.id }}" data-action="{% if bot.is_active %}deactivate{% else %}activate{% endif %}">
+                                    <i class="fas fa-power-off me-1"></i>
+                                    {% if bot.is_active %}停用{% else %}啟用{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-robot fa-4x text-muted"></i>
+                </div>
+                <h4>還沒有機器人</h4>
+                <p class="text-muted">點擊上方的「新增機器人」按鈕開始添加您的第一個機器人。</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBotModal">
+                    <i class="fas fa-plus me-2"></i>新增機器人
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if bots.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if bots.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ bots.previous_page_number }}">上一頁</a>
+            </li>
+            {% endif %}
+            
+            {% for num in bots.paginator.page_range %}
+                {% if bots.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if bots.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ bots.next_page_number }}">下一頁</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Add Bot Modal -->
+<div class="modal fade" id="addBotModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">新增機器人</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addBotForm">
+                    <div class="mb-3">
+                        <label class="form-label">機器人Token</label>
+                        <input type="text" class="form-control" name="token" required>
+                        <div class="form-text">在Discord Developer Portal中獲取您的機器人Token</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">指令前綴</label>
+                        <input type="text" class="form-control" name="prefix" required>
+                        <div class="form-text">用於觸發機器人指令的符號，例如：!</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" form="addBotForm" class="btn btn-primary">新增</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('searchBot');
+    const statusFilter = document.getElementById('statusFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    
+    function filterBots() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const status = statusFilter.value;
+        const sort = sortFilter.value;
+        
+        showLoading();
+        
+        fetch(`/api/bots/filter?search=${searchTerm}&status=${status}&sort=${sort}`)
+            .then(response => response.json())
+            .then(data => {
+                const botsList = document.getElementById('botsList');
+                // Update bots list with filtered data
+                // Implementation depends on your API response structure
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => hideLoading());
+    }
+    
+    searchInput.addEventListener('input', filterBots);
+    statusFilter.addEventListener('change', filterBots);
+    sortFilter.addEventListener('change', filterBots);
+    
+    // Bot activation toggle
+    document.querySelectorAll('.toggle-bot').forEach(button => {
+        button.addEventListener('click', function() {
+            const botId = this.dataset.botId;
+            const action = this.dataset.action;
+            
+            showLoading();
+            
+            fetch(`/api/bots/${botId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('操作失敗：' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => hideLoading());
+        });
+    });
+    
+    // Add bot form submission
+    document.getElementById('addBotForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        showLoading();
+        
+        fetch('/api/bots/add', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('新增失敗：' + data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error))
+        .finally(() => hideLoading());
+    });
+    
+    // CSRF token helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

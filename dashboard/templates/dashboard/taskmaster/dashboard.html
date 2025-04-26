@@ -1,0 +1,202 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Task Dashboard | Taskmaster{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="mb-4">Task Dashboard</h1>
+    
+    <!-- Task Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Tasks</h5>
+                    <p class="card-text display-4">{{ total_tasks }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Completed</h5>
+                    <p class="card-text display-4">{{ completed_tasks }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-dark bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pending</h5>
+                    <p class="card-text display-4">{{ pending_tasks }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">In Progress</h5>
+                    <p class="card-text display-4">{{ in_progress_tasks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Overdue Tasks -->
+        <div class="col-md-6">
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Overdue Tasks ({{ overdue_tasks.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for task in overdue_tasks %}
+                        <a href="{% url 'dashboard:taskmaster:task_detail' task.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ task.title }}</h5>
+                                <small>Due: {{ task.due_date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">
+                                <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                                <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                            </p>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item text-center text-success">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p>No overdue tasks! Great job!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if overdue_tasks.count > 0 %}
+                <div class="card-footer">
+                    <a href="{% url 'dashboard:taskmaster:task_list' %}?status=pending" class="btn btn-sm btn-outline-danger">View All Pending Tasks</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Due Soon Tasks -->
+        <div class="col-md-6">
+            <div class="card border-warning mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Due Soon (Next 24 Hours) ({{ due_soon_tasks.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for task in due_soon_tasks %}
+                        <a href="{% url 'dashboard:taskmaster:task_detail' task.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ task.title }}</h5>
+                                <small>Due: {{ task.due_date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">
+                                <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                                <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                            </p>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item text-center">
+                            <p class="text-muted">No tasks due in the next 24 hours</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if due_soon_tasks.count > 0 %}
+                <div class="card-footer">
+                    <a href="{% url 'dashboard:taskmaster:task_list' %}" class="btn btn-sm btn-outline-warning">View All Tasks</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Tasks -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Recent Tasks</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Due Date</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in recent_tasks %}
+                        <tr>
+                            <td>{{ task.title }}</td>
+                            <td>
+                                <span class="badge {% if task.status == 'pending' %}bg-warning text-dark{% elif task.status == 'in_progress' %}bg-info text-dark{% elif task.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% elif task.priority == 'medium' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if task.due_date %}
+                                {{ task.due_date|date:"M d, Y" }}
+                                {% if task.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">No due date</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ task.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'dashboard:taskmaster:task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'dashboard:taskmaster:task_update' task.id %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'dashboard:taskmaster:task_toggle_status' task.id %}" class="btn btn-sm btn-outline-success">
+                                    {% if task.status == 'completed' %}
+                                    <i class="fas fa-undo"></i>
+                                    {% else %}
+                                    <i class="fas fa-check"></i>
+                                    {% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <p class="text-muted mb-0">No tasks found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'dashboard:taskmaster:task_list' %}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> View All Tasks
+                </a>
+                <a href="{% url 'dashboard:taskmaster:task_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Create New Task
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

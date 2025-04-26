@@ -1,0 +1,388 @@
+.settings-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.settings-section {
+    padding: 24px;
+    border-radius: 28px;
+    background: var(--surface-container);
+    box-shadow: var(--elevation-1);
+    margin-bottom: 24px;
+    transition: background 0.2s ease;
+}
+
+.settings-section:hover {
+    box-shadow: var(--elevation-2);
+}
+
+.settings-section h2 {
+    color: var(--on-surface);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item-label {
+    color: var(--on-surface);
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.settings-item-description {
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: var(--m3-on-surface-variant);
+    font-size: 0.875rem;
+}
+
+.switch-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--m3-on-surface);
+    font-size: 1rem;
+}
+
+.m3-textfield {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid var(--outline);
+    border-radius: 16px;
+    background: var(--surface-container-lowest);
+    color: var(--on-surface);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    margin-bottom: 16px;
+}
+
+.m3-textfield:focus {
+    border-color: var(--primary);
+    background: var(--surface-container-low);
+    outline: none;
+    box-shadow: 0 0 0 4px var(--primary-container);
+}
+
+.m3-textfield[readonly] {
+    background: var(--m3-surface-container);
+    border-color: var(--m3-outline-variant);
+    color: var(--m3-on-surface-variant);
+}
+
+.danger-zone {
+    background: var(--error-container);
+    border-radius: 28px;
+    padding: 24px;
+    margin-top: 32px;
+}
+
+.danger-zone h2 {
+    color: var(--on-error-container);
+    margin-bottom: 16px;
+}
+
+.danger-zone .m3-button {
+    background: var(--error);
+    color: var(--on-error);
+    margin-top: 16px;
+}
+
+.danger-zone .m3-button:hover {
+    background: var(--error);
+    opacity: 0.9;
+    box-shadow: var(--elevation-2);
+}
+
+.m3-dialog {
+    padding: 1.5rem;
+    border: none;
+    border-radius: var(--m3-shape-corner-large);
+    background: var(--m3-surface-container);
+    color: var(--m3-on-surface);
+    box-shadow: var(--m3-elevation-3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.m3-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+}
+
+.m3-dialog h3 {
+    color: var(--m3-on-surface);
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0 0 1.5rem;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .settings-container {
+        margin: 1rem auto;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-section {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .settings-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .settings-item-control {
+        margin-top: 12px;
+        align-self: flex-end;
+    }
+
+    .m3-button {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .m3-dialog {
+        padding: 1rem;
+        width: 95%;
+    }
+}
+
+/* 動畫效果 */
+@keyframes dialogShow {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.m3-dialog[open] {
+    animation: dialogShow 0.3s var(--m3-motion-easing-standard);
+}
+
+/* 深色模式優化 */
+@media (prefers-color-scheme: dark) {
+    .m3-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .settings-section {
+        background: var(--surface-container-low);
+    }
+
+    .m3-textfield {
+        background: var(--surface-container);
+    }
+
+    .danger-zone {
+        background: color-mix(in srgb, var(--error) 12%, transparent);
+    }
+}
+
+/* 按鈕樣式 */
+.m3-button {
+    padding: 0 24px;
+    height: 40px;
+    border-radius: 20px;
+    background: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.m3-button:hover {
+    background: var(--primary);
+    opacity: 0.9;
+    box-shadow: var(--elevation-2);
+}
+
+.m3-button:disabled {
+    background: var(--surface-container-highest);
+    color: var(--on-surface-variant);
+    cursor: not-allowed;
+}
+
+/* 開關按鈕樣式 */
+.m3-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 32px;
+}
+
+.m3-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.m3-switch .track {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--surface-container-highest);
+    border: 2px solid var(--outline);
+    transition: 0.2s;
+    border-radius: 16px;
+}
+
+.m3-switch .track:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--outline);
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+.m3-switch input:checked + .track {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.m3-switch input:checked + .track:before {
+    background-color: var(--on-primary);
+    transform: translateX(20px);
+}
+
+.m3-switch input:focus + .track {
+    box-shadow: 0 0 0 4px var(--primary-container);
+}
+
+.m3-button.error {
+    background: var(--error);
+    color: var(--on-error);
+}
+
+.m3-button.error:hover {
+    background: var(--error-hover);
+}
+
+/* 開關按鈕樣式 */
+.m3-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 32px;
+}
+
+.m3-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.m3-switch-track {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--surface-container-highest);
+    border: 2px solid var(--outline);
+    transition: .2s;
+    border-radius: 16px;
+}
+
+.m3-switch-track:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 2px;
+    bottom: 2px;
+    background: var(--outline);
+    transition: .2s;
+    border-radius: 50%;
+}
+
+input:checked + .m3-switch-track {
+    background: var(--primary-container);
+    border-color: var(--primary);
+}
+
+input:checked + .m3-switch-track:before {
+    transform: translateX(20px);
+    background: var(--primary);
+}
+
+.m3-switch:hover .m3-switch-track {
+    background-color: var(--surface-container-high);
+}
+
+input:checked:hover + .m3-switch-track {
+    background-color: var(--primary-container);
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .settings-section {
+    background: var(--surface-container-low);
+}
+
+[data-theme="dark"] .m3-textfield {
+    background: var(--surface-container);
+}
+
+[data-theme="dark"] .danger-zone {
+    background: color-mix(in srgb, var(--error) 8%, transparent);
+} 

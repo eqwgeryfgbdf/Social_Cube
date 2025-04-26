@@ -1,0 +1,294 @@
+{% extends 'dashboard/new_base.html' %}
+
+{% block title %}伺服器管理 - Discord機器人管理{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboard:index' %}" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">儀表板</a>
+</li>
+<li class="breadcrumb-item">
+    <span class="text-gray-800 dark:text-gray-200">伺服器管理</span>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">伺服器管理</h1>
+        <button type="button" data-modal-target="serverInviteModal" data-modal-toggle="serverInviteModal" class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2 px-4 rounded-lg transition-colors flex items-center">
+            <i class="fas fa-link mr-2"></i>
+            <span>邀請機器人</span>
+        </button>
+    </div>
+
+    <!-- 篩選和搜尋 -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6 border border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="server-search" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5" placeholder="搜尋伺服器...">
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <select id="bot-filter" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
+                    <option value="all">所有機器人</option>
+                    {% for bot in user_bots %}
+                        <option value="{{ bot.id }}">{{ bot.name }}</option>
+                    {% endfor %}
+                </select>
+                <select id="sort-order" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
+                    <option value="name">名稱排序</option>
+                    <option value="member_count">成員數量</option>
+                    <option value="recent_activity">最近活動</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {% if servers %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for server in servers %}
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                {% if server.icon_url %}
+                                    <img src="{{ server.icon_url }}" alt="{{ server.name }}" class="w-12 h-12 rounded-lg mr-4">
+                                {% else %}
+                                    <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-4">
+                                        <i class="fas fa-server text-xl text-gray-500 dark:text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate max-w-[180px]">{{ server.name }}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">ID: {{ server.server_id }}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end text-xs text-gray-500 dark:text-gray-400">
+                                <span class="whitespace-nowrap">{{ server.member_count }} 成員</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4 mb-4">
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 dark:text-gray-400">活躍機器人</span>
+                                    <div class="flex -space-x-2">
+                                        {% for bot in server.bots %}
+                                            <img src="{{ bot.avatar_url|default:'#' }}" alt="{{ bot.name }}" title="{{ bot.name }}" class="w-6 h-6 rounded-full border-2 border-white dark:border-gray-800">
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 dark:text-gray-400">命令使用量</span>
+                                    <span class="text-gray-900 dark:text-white font-medium">{{ server.command_count }}</span>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 dark:text-gray-400">上次活動</span>
+                                    <span class="text-gray-900 dark:text-white font-medium">{{ server.last_activity|default:"N/A" }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 熱門命令 -->
+                            {% if server.popular_commands %}
+                                <div class="pt-2">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">熱門命令</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        {% for command in server.popular_commands %}
+                                            <span class="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded">
+                                                {{ command.name }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-4 flex space-x-2">
+                            <a href="{% url 'dashboard:server:detail' server.id %}" class="flex-1 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2 px-3 rounded text-sm text-center transition-colors">
+                                管理
+                            </a>
+                            <button type="button" data-server-id="{{ server.id }}" class="server-settings-btn flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center border border-gray-200 dark:border-gray-700">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
+                <i class="fas fa-server text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">還沒有伺服器</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">將機器人邀請到Discord伺服器來管理它們</p>
+            <button type="button" data-modal-target="serverInviteModal" data-modal-toggle="serverInviteModal" class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2 px-6 rounded-lg transition-colors inline-flex items-center">
+                <i class="fas fa-link mr-2"></i>
+                <span>邀請機器人到伺服器</span>
+            </button>
+        </div>
+    {% endif %}
+
+    {% if servers.has_other_pages %}
+        <div class="flex justify-center mt-8">
+            <nav class="flex items-center">
+                <ul class="flex space-x-1">
+                    {% if servers.has_previous %}
+                        <li>
+                            <a href="?page={{ servers.previous_page_number }}" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 bg-gray-100 dark:bg-gray-700 rounded">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in servers.paginator.page_range %}
+                        {% if servers.number == num %}
+                            <li>
+                                <span class="px-3 py-2 bg-primary-600 text-white rounded">{{ num }}</span>
+                            </li>
+                        {% elif num > servers.number|add:'-3' and num < servers.number|add:'3' %}
+                            <li>
+                                <a href="?page={{ num }}" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 bg-gray-100 dark:bg-gray-700 rounded">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if servers.has_next %}
+                        <li>
+                            <a href="?page={{ servers.next_page_number }}" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 bg-gray-100 dark:bg-gray-700 rounded">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+</div>
+
+<!-- 邀請機器人對話框 -->
+<div id="serverInviteModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+            <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-700 dark:hover:text-white" data-modal-hide="serverInviteModal">
+                <i class="fas fa-times w-5 h-5"></i>
+                <span class="sr-only">關閉</span>
+            </button>
+            <div class="p-6">
+                <h3 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">邀請機器人到伺服器</h3>
+                <form id="inviteForm">
+                    <div class="mb-4">
+                        <label for="bot-select" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">選擇機器人</label>
+                        <select id="bot-select" name="bot_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            {% for bot in user_bots %}
+                                <option value="{{ bot.id }}">{{ bot.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2.5 px-5 rounded-lg transition-colors flex items-center justify-center">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        <span>生成邀請連結</span>
+                    </button>
+                </form>
+                
+                <div id="inviteResult" class="mt-4 hidden">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">複製下方連結邀請機器人:</p>
+                        <div class="flex">
+                            <input id="invite-link" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" readonly>
+                            <button id="copy-link" type="button" class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white px-3 rounded-r-lg transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 搜尋和篩選功能
+        const searchInput = document.getElementById('server-search');
+        const botFilter = document.getElementById('bot-filter');
+        const sortOrder = document.getElementById('sort-order');
+        
+        // 邀請機器人表單處理
+        const inviteForm = document.getElementById('inviteForm');
+        const inviteResult = document.getElementById('inviteResult');
+        const inviteLink = document.getElementById('invite-link');
+        const copyLink = document.getElementById('copy-link');
+        
+        inviteForm?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const botId = document.getElementById('bot-select').value;
+            
+            // 這裡應該發送AJAX請求到後端獲取邀請鏈接
+            fetch(`/dashboard/bot/${botId}/invite-link/`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.invite_link) {
+                    inviteLink.value = data.invite_link;
+                    inviteResult.classList.remove('hidden');
+                } else {
+                    alert('無法生成邀請連結：' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('發生錯誤，請稍後重試');
+            });
+        });
+        
+        // 複製邀請連結
+        copyLink?.addEventListener('click', function() {
+            inviteLink.select();
+            document.execCommand('copy');
+            this.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        });
+        
+        // 伺服器設定按鈕
+        const serverSettingsButtons = document.querySelectorAll('.server-settings-btn');
+        serverSettingsButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const serverId = this.getAttribute('data-server-id');
+                // 這裡可以處理設定選單或導航到設定頁面
+                window.location.href = `/dashboard/server/${serverId}/settings/`;
+            });
+        });
+        
+        // 獲取CSRF Token的輔助函數
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

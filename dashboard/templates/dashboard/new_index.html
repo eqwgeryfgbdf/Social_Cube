@@ -1,0 +1,351 @@
+{% extends 'dashboard/new_base.html' %}
+
+{% block title %}儀表板 - Discord機器人管理{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <span class="text-gray-800 dark:text-gray-200">儀表板</span>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    {% if user.is_authenticated %}
+        <!-- 統計摘要 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- 機器人統計 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 transition-all hover:shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">機器人</h3>
+                    <span class="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full">
+                        <i class="fas fa-robot"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ bots_count|default:"0" }}</span>
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">總數</span>
+                </div>
+                <div class="mt-1">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ active_bots|default:"0" }} 個活躍中</span>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'dashboard:bot:list' %}" class="text-primary-600 dark:text-primary-400 hover:underline text-sm flex items-center">
+                        <span>查看所有機器人</span>
+                        <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 伺服器統計 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 transition-all hover:shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">伺服器</h3>
+                    <span class="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
+                        <i class="fas fa-server"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ servers_count|default:"0" }}</span>
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">總數</span>
+                </div>
+                <div class="mt-1">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ total_members|default:"0" }} 位成員</span>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'dashboard:servers' %}" class="text-primary-600 dark:text-primary-400 hover:underline text-sm flex items-center">
+                        <span>查看所有伺服器</span>
+                        <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 命令統計 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 transition-all hover:shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">命令使用</h3>
+                    <span class="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full">
+                        <i class="fas fa-terminal"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ total_commands|default:"0" }}</span>
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">總使用次數</span>
+                </div>
+                <div class="mt-1">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ commands_today|default:"0" }} 今日使用</span>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'dashboard:stats' %}" class="text-primary-600 dark:text-primary-400 hover:underline text-sm flex items-center">
+                        <span>查看詳細統計</span>
+                        <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 系統狀態 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 transition-all hover:shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">系統狀態</h3>
+                    <span class="p-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full">
+                        <i class="fas fa-heartbeat"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <span class="text-lg font-bold text-green-500 dark:text-green-400">
+                        <i class="fas fa-check-circle"></i> 正常運行中
+                    </span>
+                </div>
+                <div class="mt-1">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">上次更新: {{ last_updated|default:"剛剛" }}</span>
+                </div>
+                <div class="mt-4">
+                    <a href="#" class="text-primary-600 dark:text-primary-400 hover:underline text-sm flex items-center">
+                        <span>查看系統日誌</span>
+                        <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 兩欄式佈局 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左側 (2/3寬度) -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- 快速操作區 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">快速操作</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <a href="{% url 'dashboard:bot:add' %}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-plus-circle text-2xl mb-2"></i>
+                            <span class="text-sm text-center">添加機器人</span>
+                        </a>
+                        <a href="{% url 'dashboard:servers' %}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-server text-2xl mb-2"></i>
+                            <span class="text-sm text-center">管理伺服器</span>
+                        </a>
+                        <a href="{% url 'dashboard:stats' %}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-chart-bar text-2xl mb-2"></i>
+                            <span class="text-sm text-center">查看統計</span>
+                        </a>
+                        <a href="#" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-cog text-2xl mb-2"></i>
+                            <span class="text-sm text-center">系統設置</span>
+                        </a>
+                        <a href="#" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-code text-2xl mb-2"></i>
+                            <span class="text-sm text-center">API文檔</span>
+                        </a>
+                        <a href="#" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-question-circle text-2xl mb-2"></i>
+                            <span class="text-sm text-center">使用幫助</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 最近活動 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">最近活動</h3>
+                        <a href="#" class="text-primary-600 dark:text-primary-400 hover:underline text-sm">查看全部</a>
+                    </div>
+                    {% if recent_logs %}
+                        <div class="space-y-4">
+                            {% for log in recent_logs %}
+                                <div class="flex items-start p-3 rounded-lg {% if forloop.counter|divisibleby:2 %}bg-gray-50 dark:bg-gray-700/50{% endif %}">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
+                                            <i class="fas fa-history"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                                            {{ log.action }}
+                                        </p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                            {{ log.bot.name }} / {{ log.server.name }}
+                                        </p>
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                            {{ log.timestamp|date:"Y-m-d H:i" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="py-6 text-center">
+                            <p class="text-gray-500 dark:text-gray-400">暫無活動記錄</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 右側 (1/3寬度) -->
+            <div class="space-y-8">
+                <!-- 我的機器人 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">我的機器人</h3>
+                    </div>
+                    <div class="p-0">
+                        {% if user_bots %}
+                            <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for bot in user_bots %}
+                                    <li class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mr-3">
+                                                <i class="fas fa-robot text-primary-600 dark:text-primary-400"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ bot.name }}</h4>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {% if bot.is_active %}
+                                                        <span class="text-green-500 dark:text-green-400">
+                                                            <i class="fas fa-circle text-xs"></i> 運行中
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-gray-400 dark:text-gray-500">
+                                                            <i class="fas fa-circle text-xs"></i> 已停止
+                                                        </span>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'dashboard:bot:detail' bot.id %}" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="p-6 text-center">
+                                <p class="text-gray-500 dark:text-gray-400 mb-4">你還沒有添加任何機器人</p>
+                                <a href="{% url 'dashboard:bot:add' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white rounded-lg transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    <span>添加機器人</span>
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 常用命令 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">熱門命令</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if popular_commands %}
+                            <ul class="space-y-3">
+                                {% for command in popular_commands %}
+                                    <li class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mr-3">
+                                                <i class="fas fa-terminal text-xs"></i>
+                                            </span>
+                                            <span class="text-sm text-gray-800 dark:text-gray-200">{{ command.name }}</span>
+                                        </div>
+                                        <span class="text-xs font-medium py-1 px-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                            {{ command.uses }}次
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-center text-gray-500 dark:text-gray-400">暫無命令使用記錄</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 資源使用量 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">資源使用量</h3>
+                    
+                    <!-- CPU 使用率 -->
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">CPU</span>
+                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">28%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full" style="width: 28%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 記憶體使用率 -->
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">記憶體</span>
+                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">45%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-purple-600 dark:bg-purple-500 h-2 rounded-full" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 存儲空間 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">磁碟空間</span>
+                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">15%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-green-600 dark:bg-green-500 h-2 rounded-full" style="width: 15%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+    <!-- 未登入使用者內容 -->
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="md:flex">
+            <div class="md:flex-shrink-0 bg-primary-600 dark:bg-primary-700 md:w-48 flex items-center justify-center p-8">
+                <i class="fab fa-discord text-white text-6xl"></i>
+            </div>
+            <div class="p-8">
+                <div class="uppercase tracking-wide text-sm text-primary-600 dark:text-primary-400 font-semibold">Discord 機器人管理</div>
+                <h1 class="mt-2 text-3xl leading-tight font-bold text-gray-900 dark:text-white">歡迎使用 Social Cube</h1>
+                <p class="mt-4 text-gray-600 dark:text-gray-300">
+                    管理您的 Discord 機器人變得前所未有的簡單。輕鬆設定、監控和配置您的機器人，無需任何編程知識。
+                </p>
+                <div class="mt-6 space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-500 dark:text-green-400 mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">簡單易用</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">直觀的界面讓任何人都能快速上手</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-500 dark:text-green-400 mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">多機器人支持</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">在一個儀表板中管理多個機器人</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-500 dark:text-green-400 mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">詳細統計</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">獲取命令使用情況和使用者互動的深入洞察</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <a href="{% url 'dashboard:oauth2_login' %}" class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-3 px-6 rounded-lg font-medium transition-colors inline-flex items-center">
+                        <i class="fab fa-discord mr-2"></i>
+                        <span>使用 Discord 登入</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

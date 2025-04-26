@@ -1,0 +1,109 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Bot Statistics - Social Cube{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Bot Statistics</h1>
+        <p class="text-gray-600">Monitor your Discord bot's performance and usage metrics</p>
+    </div>
+
+    {% if bot_stats %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-700">Servers</h3>
+                <i class="fas fa-server text-indigo-600"></i>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{{ bot_stats.server_count|default:"0" }}</p>
+            <div class="mt-2 text-sm text-gray-600">Total servers joined</div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-700">Commands Used</h3>
+                <i class="fas fa-terminal text-indigo-600"></i>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{{ bot_stats.command_count|default:"0" }}</p>
+            <div class="mt-2 text-sm text-gray-600">Total commands executed</div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-700">Active Users</h3>
+                <i class="fas fa-users text-indigo-600"></i>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{{ bot_stats.user_count|default:"0" }}</p>
+            <div class="mt-2 text-sm text-gray-600">Unique users interacting</div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+            {% if bot_stats.recent_logs %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Server</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for log in bot_stats.recent_logs %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.server_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.action }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.user_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-600 text-center py-4">No recent activity to display</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Popular Commands -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Popular Commands</h2>
+            {% if bot_stats.popular_commands %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for command in bot_stats.popular_commands %}
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-900">{{ command.name }}</span>
+                        <span class="text-sm text-gray-600">{{ command.uses }} uses</span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ command.description|truncatechars:100 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-600 text-center py-4">No command usage data available</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-8 border border-gray-200 text-center">
+        <div class="mb-4">
+            <i class="fas fa-robot text-4xl text-gray-400"></i>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">No Bot Data Available</h2>
+        <p class="text-gray-600 mb-6">Add your Discord bot to start monitoring its performance</p>
+        <a href="{% url 'dashboard:bot:add' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <i class="fas fa-plus mr-2"></i>Add Bot
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

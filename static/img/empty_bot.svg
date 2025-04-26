@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 機器人頭部 -->
+    <rect x="60" y="40" width="80" height="80" rx="10" fill="#E0E0E0"/>
+    <!-- 機器人眼睛 -->
+    <circle cx="85" cy="70" r="8" fill="#9E9E9E"/>
+    <circle cx="115" cy="70" r="8" fill="#9E9E9E"/>
+    <!-- 機器人天線 -->
+    <line x1="100" y1="30" x2="100" y2="40" stroke="#E0E0E0" stroke-width="4"/>
+    <circle cx="100" cy="25" r="5" fill="#E0E0E0"/>
+    <!-- 機器人身體 -->
+    <rect x="70" y="130" width="60" height="40" rx="5" fill="#E0E0E0"/>
+    <!-- 機器人手臂 -->
+    <rect x="40" y="140" width="30" height="10" rx="5" fill="#E0E0E0"/>
+    <rect x="130" y="140" width="30" height="10" rx="5" fill="#E0E0E0"/>
+</svg> 

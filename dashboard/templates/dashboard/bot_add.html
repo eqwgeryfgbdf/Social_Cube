@@ -1,0 +1,298 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Add Bot - Social Cube{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">Add Discord Bot</h1>
+            <p class="text-gray-600">Configure your Discord bot and start managing it immediately</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-8 border border-gray-100">
+            <form method="POST" id="botAddForm">
+                {% csrf_token %}
+                
+                <!-- Bot Token -->
+                <div class="mb-6">
+                    <label for="token" class="block text-sm font-medium text-gray-700 mb-2 flex justify-between items-center">
+                        Bot Token <span class="text-red-500">*</span>
+                        <a href="#" class="text-indigo-500 hover:text-indigo-700 flex items-center" data-bs-toggle="tooltip" 
+                           title="Find this in Discord Developer Portal">
+                            <i class="bi bi-info-circle me-1"></i> Help
+                        </a>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="password" name="token" id="token" required
+                            class="block w-full pr-10 border-gray-200 rounded-lg py-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
+                            placeholder="Enter your bot token">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button" id="toggleToken" class="text-gray-400 hover:text-indigo-600 transition-colors">
+                                <i class="bi bi-eye text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bot Name -->
+                <div class="mb-6">
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Bot Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="name" required
+                        class="block w-full border-gray-200 rounded-lg py-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
+                        placeholder="Enter bot name"
+                        maxlength="32"
+                        oninput="updatePreview('name', this.value)">
+                    <p class="mt-1 text-sm text-gray-500">This will be displayed in your dashboard</p>
+                </div>
+
+                <!-- Bot Description -->
+                <div class="mb-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea name="description" id="description" rows="3"
+                        class="block w-full border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
+                        placeholder="Enter a brief description of your bot"
+                        oninput="updatePreview('description', this.value)"></textarea>
+                </div>
+
+                <!-- Application Commands -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2 flex justify-between items-center">
+                        Application Commands <span class="text-red-500">*</span>
+                        <a href="https://discord.com/developers/docs/interactions/application-commands" target="_blank" class="text-indigo-500 hover:text-indigo-700 flex items-center" data-bs-toggle="tooltip" 
+                           title="Discord's modern way to interact with bots using slash commands">
+                            <i class="bi bi-info-circle me-1"></i> Help
+                        </a>
+                    </label>
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <input type="checkbox" name="use_slash_commands" id="use_slash_commands" checked
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="use_slash_commands" class="ml-2 block text-sm text-gray-700">
+                                <span class="font-medium">Slash Commands</span> <span class="text-xs text-gray-500">(e.g., /help, /status)</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center mb-3">
+                            <input type="checkbox" name="use_user_commands" id="use_user_commands"
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="use_user_commands" class="ml-2 block text-sm text-gray-700">
+                                <span class="font-medium">User Commands</span> <span class="text-xs text-gray-500">(right-click on users)</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="use_message_commands" id="use_message_commands"
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="use_message_commands" class="ml-2 block text-sm text-gray-700">
+                                <span class="font-medium">Message Commands</span> <span class="text-xs text-gray-500">(right-click on messages)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">Modern Discord bots use Application Commands instead of prefixes</p>
+                </div>
+
+                <!-- Preview Card -->
+                <div class="mb-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+                    <h5 class="text-sm uppercase text-gray-500 mb-3 tracking-wider">Preview</h5>
+                    <div class="flex items-center mb-4">
+                        <div class="w-14 h-14 rounded-full mr-4 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white overflow-hidden">
+                            <img src="https://cdn.discordapp.com/embed/avatars/0.png" 
+                                alt="Bot Avatar" 
+                                class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h6 class="font-medium text-gray-900 text-lg mb-0" id="previewName">Your Bot Name</h6>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">Application Commands</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-0" id="previewDescription">Your bot description will appear here</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-all">
+                        <i class="bi bi-plus-circle me-2"></i>Add Bot
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-7 border border-blue-100 shadow-sm">
+            <div class="flex items-center mb-4">
+                <div class="rounded-full bg-blue-100 p-2 mr-3">
+                    <i class="bi bi-lightbulb text-blue-600 text-lg"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-800">How to Add Your Bot</h2>
+            </div>
+            
+            <ol class="ml-8 space-y-4 text-gray-700">
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">1</span>
+                    <span>Go to the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium">Discord Developer Portal</a></span>
+                </li>
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">2</span>
+                    <span>Create a new application or select an existing one</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">3</span>
+                    <span>Go to the "Bot" section and click "Add Bot" if you haven't already</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">4</span>
+                    <span>Click "Reset Token" to reveal your bot token</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">5</span>
+                    <span>Copy the token and paste it in the form above</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">6</span>
+                    <span>In the "Bot" section, ensure "MESSAGE CONTENT INTENT" is enabled if your bot needs to read message content</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 text-sm font-medium mr-3 mt-0.5">7</span>
+                    <span>In the "OAuth2" section, add the <code>applications.commands</code> scope when creating invite links</span>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+<div class="fixed bottom-5 right-5 p-4 z-50">
+    {% for message in messages %}
+    <div class="bg-white rounded-lg shadow-lg mb-4 overflow-hidden max-w-md animate-slide-up transform transition-all">
+        <div class="px-4 py-3 {% if message.tags == 'success' %}bg-gradient-to-r from-green-500 to-green-600{% elif message.tags == 'error' %}bg-gradient-to-r from-red-500 to-red-600{% else %}bg-gradient-to-r from-gray-500 to-gray-600{% endif %} text-white flex justify-between items-center">
+            <strong>{{ message.tags|title }}</strong>
+            <button type="button" class="text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="px-4 py-3">
+            {{ message }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Toggle token visibility
+    const toggleToken = document.getElementById('toggleToken');
+    const tokenInput = document.getElementById('token');
+
+    toggleToken.addEventListener('click', function() {
+        const type = tokenInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        tokenInput.setAttribute('type', type);
+        this.innerHTML = `<i class="bi bi-eye${type === 'password' ? '' : '-slash'} text-lg"></i>`;
+    });
+
+    // Auto-hide messages after 5 seconds
+    setTimeout(function() {
+        document.querySelectorAll('.animate-slide-up').forEach(function(el) {
+            el.style.transition = 'all 0.5s ease-in-out';
+            el.style.transform = 'translateY(100%)';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 500);
+        });
+    }, 5000);
+});
+
+// Preview updates
+function updatePreview(field, value) {
+    switch(field) {
+        case 'name':
+            document.getElementById('previewName').textContent = value || 'Your Bot Name';
+            break;
+        case 'description':
+            document.getElementById('previewDescription').textContent = value || 'Your bot description will appear here';
+            break;
+    }
+}
+
+// Form validation with enhanced error messages
+document.getElementById('botAddForm').addEventListener('submit', function(e) {
+    const token = document.getElementById('token').value;
+    const name = document.getElementById('name').value;
+
+    if (!token || !name) {
+        e.preventDefault();
+        
+        const messagesContainer = document.querySelector('.fixed.bottom-5.right-5');
+        if (!messagesContainer) {
+            const container = document.createElement('div');
+            container.className = 'fixed bottom-5 right-5 p-4 z-50';
+            document.body.appendChild(container);
+        }
+        
+        const message = document.createElement('div');
+        message.className = 'bg-white rounded-lg shadow-lg mb-4 overflow-hidden max-w-md animate-slide-up transform transition-all';
+        message.innerHTML = `
+            <div class="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white flex justify-between items-center">
+                <strong>Error</strong>
+                <button type="button" class="text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="px-4 py-3">
+                ${!token ? 'Bot token is required.' : ''} 
+                ${!name ? 'Bot name is required.' : ''}
+                ${!token && !name ? 'Please fill in all required fields.' : ''}
+            </div>
+        `;
+        
+        const container = document.querySelector('.fixed.bottom-5.right-5') || messagesContainer;
+        container.appendChild(message);
+        
+        setTimeout(() => {
+            message.style.transition = 'all 0.5s ease-in-out';
+            message.style.transform = 'translateY(100%)';
+            message.style.opacity = '0';
+            setTimeout(() => message.remove(), 500);
+        }, 5000);
+    }
+});
+</script>
+
+<style>
+.animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Input field focus effect */
+input:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* Smooth hover transitions */
+a, button {
+    transition: all 0.2s ease;
+}
+</style>
+{% endblock %}

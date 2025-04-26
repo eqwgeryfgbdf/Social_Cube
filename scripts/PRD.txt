@@ -1,0 +1,101 @@
+# Discord BOT 管理系統 - PRD（產品需求文件）
+
+## 一、專案簡述
+本專案旨在開發一套集中式的 Discord BOT 管理系統，提供 Web 控制面板與 API 服務，支援多 BOT、多伺服器運作，並符合 Discord 最新的 App Commands（/指令）設計標準。
+
+---
+
+## 二、產品目標
+- 集中管理 Discord BOT，支援多 BOT、多伺服器。
+- 提供簡潔易用的 Web 控制面板。
+- 完全採用 Discord 最新的 `/指令` 規範。
+- 高效能、高可維護性、高擴充性設計。
+
+---
+
+## 三、使用者故事
+1. 作為系統管理員，我希望能夠新增或刪除 BOT，方便管理多個 BOT。
+2. 作為伺服器管理員，我希望能設定 BOT 在不同伺服器的行為與指令。
+3. 作為一般使用者，我希望能快速透過 Dashboard 查看 BOT 狀態與操作紀錄。
+
+---
+
+## 四、功能需求
+
+### 4.1 核心功能
+- **BOT 註冊管理**：新增、刪除、啟用、停用 BOT。
+- **指令管理**：管理並同步 `/指令` 到 Discord Server。
+- **伺服器管理**：顯示與管理 BOT 所在的 Guild（伺服器）。
+- **設定管理**：每個伺服器可自訂通知頻道、公告內容等。
+- **登入系統**：使用 Discord OAuth2 認證登入。
+- **日誌系統**：記錄重要操作與錯誤資訊。
+
+### 4.2 進階功能
+- **即時狀態更新**：Dashboard 顯示 BOT 在線狀態與錯誤提示。
+- **權限控制**：細分不同層級的使用者權限。
+- **多語系支援**（選擇性開發）：辨識台灣/中國用語差異。
+
+---
+
+## 五、非功能性需求
+- 高效能，能支撐大型伺服器需求。
+- 高安全性，防止 Token 洩漏與未授權存取。
+- 良好可維護性，模組分層清楚。
+- 可擴充性，方便未來增加新功能或新 BOT。
+- 支援 Docker 化部署。
+
+---
+
+## 六、技術規劃
+
+| 分類 | 技術選型 |
+|:---|:---|
+| 後端框架 | Django 4.2+ |
+| BOT 框架 | discord.py 2.3+ (app_commands) |
+| 資料庫 | PostgreSQL（或初期 SQLite） |
+| 前端框架 | Bootstrap 5 / Tailwind CSS + Alpine.js |
+| 部署平台 | Docker + Docker Compose |
+| 溝通方式 | RESTful API（可選用 WebSocket 提升即時性） |
+
+---
+
+## 七、系統架構概述
+- Django 管理 Web 控制面板與資料庫 API。
+- BOT 透過 discord.py 運作，並與後端 API 同步。
+- Dashboard 由輕量級前端建構，提供登入、設定、即時狀態查詢功能。
+
+---
+
+## 八、里程碑規劃
+1. **MVP階段**：
+   - 完成 BOT 註冊與基本指令同步。
+   - Dashboard 支援登入與查看 BOT 狀態。
+2. **進階階段**：
+   - 實作伺服器設定管理。
+   - 加入日誌系統與權限管理。
+3. **優化階段**：
+   - 部署 Docker 化。
+   - 支援 WebSocket 即時推送。
+
+---
+
+## 九、風險控管
+| 風險 | 對策 |
+|:---|:---|
+| Discord API 限流 | 設置速率限制與自動重試。 |
+| Token 洩漏 | 使用環境變數與加密儲存。 |
+| BOT 斷線問題 | 加入心跳監控與自動重連。 |
+
+---
+
+## 十、附錄
+- 參考官方文件：[Discord Developer Portal](https://discord.com/developers/docs/intro)
+- OAuth2 認證流程：[OAuth2 Authorization Code Grant](https://discord.com/developers/docs/topics/oauth2#authorization-code-grant)
+
+---
+
+> PRD 文件撰寫日期：2025-04-26
+> 負責人：Lung Yu-Cheng
+
+---
+

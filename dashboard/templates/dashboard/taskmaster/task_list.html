@@ -1,0 +1,185 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Tasks | Taskmaster{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Tasks</h1>
+        <a href="{% url 'dashboard:taskmaster:task_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Task
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="canceled" {% if status_filter == 'canceled' %}selected{% endif %}>Canceled</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select name="priority" id="priority" class="form-select">
+                        <option value="">All</option>
+                        <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                        <option value="urgent" {% if priority_filter == 'urgent' %}selected{% endif %}>Urgent</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" name="search" id="search" class="form-control" value="{{ search_query }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'dashboard:taskmaster:task_list' %}" class="btn btn-secondary">Clear Filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Kanban Board -->
+    <div class="row">
+        <!-- Pending Tasks -->
+        <div class="col-md-4">
+            <div class="card bg-light mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Pending ({{ pending_tasks.count }})</h5>
+                </div>
+                <div class="card-body p-2">
+                    {% for task in pending_tasks %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ task.title }}</h5>
+                            {% if task.due_date %}
+                            <p class="card-text text-muted">
+                                <i class="far fa-calendar-alt"></i> 
+                                {{ task.due_date|date:"M d, Y" }}
+                                {% if task.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% elif task.priority == 'medium' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                                <div>
+                                    <a href="{% url 'dashboard:taskmaster:task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'dashboard:taskmaster:task_toggle_status' task.id %}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No pending tasks</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- In Progress Tasks -->
+        <div class="col-md-4">
+            <div class="card bg-light mb-4">
+                <div class="card-header bg-info text-dark">
+                    <h5 class="mb-0">In Progress ({{ in_progress_tasks.count }})</h5>
+                </div>
+                <div class="card-body p-2">
+                    {% for task in in_progress_tasks %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ task.title }}</h5>
+                            {% if task.due_date %}
+                            <p class="card-text text-muted">
+                                <i class="far fa-calendar-alt"></i> 
+                                {{ task.due_date|date:"M d, Y" }}
+                                {% if task.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% elif task.priority == 'medium' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                                <div>
+                                    <a href="{% url 'dashboard:taskmaster:task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'dashboard:taskmaster:task_toggle_status' task.id %}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No in-progress tasks</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Completed Tasks -->
+        <div class="col-md-4">
+            <div class="card bg-light mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Completed ({{ completed_tasks.count }})</h5>
+                </div>
+                <div class="card-body p-2">
+                    {% for task in completed_tasks %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ task.title }}</h5>
+                            {% if task.due_date %}
+                            <p class="card-text text-muted">
+                                <i class="far fa-calendar-alt"></i> 
+                                {{ task.due_date|date:"M d, Y" }}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% elif task.priority == 'medium' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                                <div>
+                                    <a href="{% url 'dashboard:taskmaster:task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'dashboard:taskmaster:task_toggle_status' task.id %}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No completed tasks</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
