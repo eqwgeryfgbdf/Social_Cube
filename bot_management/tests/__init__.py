@@ -1,0 +1,3 @@
+"""
+Bot management tests package.
+"""

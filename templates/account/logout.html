@@ -1,0 +1,34 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold mb-4">{% trans "Sign Out" %}</h1>
+            
+            <p class="text-gray-600 mb-6">
+                {% trans "Are you sure you want to sign out?" %}
+            </p>
+            
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+                
+                <div class="flex space-x-4 justify-center">
+                    <button type="submit" class="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-600 transition-colors">
+                        {% trans "Sign Out" %}
+                    </button>
+                    
+                    <a href="{% url 'dashboard:index' %}" class="bg-gray-300 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors">
+                        {% trans "Cancel" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
