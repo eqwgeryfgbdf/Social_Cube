@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'bot_management:index' %}">Bot Management</a></li>
+            {% if is_create %}
+                <li class="breadcrumb-item active" aria-current="page">Register New Bot</li>
+            {% else %}
+                <li class="breadcrumb-item"><a href="{% url 'bot_management:bot_detail' bot.id %}">{{ bot.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+            {% endif %}
+        </ol>
+    </nav>
+    
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h2 class="card-title h4 mb-0">
+                {% if is_create %}
+                    <i class="bi bi-plus-circle me-2"></i> Register New Discord Bot
+                {% else %}
+                    <i class="bi bi-pencil me-2"></i> Edit Bot: {{ bot.name }}
+                {% endif %}
+            </h2>
+        </div>
+        
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Bot Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.name.help_text %}
+                            <div class="form-text">{{ form.name.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.avatar_url.id_for_label }}" class="form-label">Avatar URL</label>
+                        {{ form.avatar_url }}
+                        {% if form.avatar_url.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.avatar_url.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.avatar_url.help_text %}
+                            <div class="form-text">{{ form.avatar_url.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.description.help_text %}
+                        <div class="form-text">{{ form.description.help_text }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.client_id.id_for_label }}" class="form-label">Client ID</label>
+                        {{ form.client_id }}
+                        {% if form.client_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.client_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.client_id.help_text %}
+                            <div class="form-text">{{ form.client_id.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.bot_user_id.id_for_label }}" class="form-label">Bot User ID</label>
+                        {{ form.bot_user_id }}
+                        {% if form.bot_user_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.bot_user_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.bot_user_id.help_text %}
+                            <div class="form-text">{{ form.bot_user_id.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.token.id_for_label }}" class="form-label">Bot Token</label>
+                    {{ form.token }}
+                    {% if form.token.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.token.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.token.help_text %}
+                        <div class="form-text">{{ form.token.help_text }}</div>
+                    {% endif %}
+                    {% if not is_create %}
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Leave blank to keep the current token unchanged. Enter a new value only if you want to update the token.
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3 form-check">
+                    {{ form.is_active }}
+                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                        Active Bot
+                    </label>
+                    {% if form.is_active.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.is_active.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.is_active.help_text %}
+                        <div class="form-text">{{ form.is_active.help_text }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-info-circle me-2"></i>Discord Developer Portal Instructions
+                        </h5>
+                        <ol class="mb-0">
+                            <li>Go to the <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+                            <li>Click "New Application" and give it a name</li>
+                            <li>Go to the "Bot" tab and click "Add Bot"</li>
+                            <li>Find the "Token" section and click "Copy" to get your Bot Token</li>
+                            <li>In the application page, copy your Client ID (Application ID)</li>
+                            <li>To get the Bot User ID, enable Developer Mode in Discord, right-click your bot and "Copy ID"</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% if is_create %}{% url 'bot_management:index' %}{% else %}{% url 'bot_management:bot_detail' bot.id %}{% endif %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if is_create %}
+                            <i class="bi bi-plus-circle me-2"></i>Register Bot
+                        {% else %}
+                            <i class="bi bi-check-circle me-2"></i>Save Changes
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
