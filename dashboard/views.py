@@ -11,6 +11,7 @@ from django.contrib.auth import logout, login
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.models import User
+from allauth.socialaccount.models import SocialAccount
 import secrets
 
 @login_required
@@ -282,3 +283,25 @@ def logout_view(request):
     """Logout view."""
     logout(request)
     return redirect('login')
+
+@login_required
+def profile(request):
+    """User profile view showing Discord account information."""
+    # Get the user's Discord account if it exists
+    try:
+        discord_account = SocialAccount.objects.get(user=request.user, provider='discord')
+        
+        # Use our adapter to get the user's Discord guilds
+        from .adapters.discord import DiscordSocialAccountAdapter
+        adapter = DiscordSocialAccountAdapter()
+        discord_guilds = adapter.get_discord_guilds(discord_account)
+    except SocialAccount.DoesNotExist:
+        discord_account = None
+        discord_guilds = []
+    
+    context = {
+        'discord_account': discord_account,
+        'discord_guilds': discord_guilds,
+    }
+    
+    return render(request, 'dashboard/profile.html', context)

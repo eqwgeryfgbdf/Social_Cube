@@ -68,7 +68,7 @@
                         {{ user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                        <li><a class="dropdown-item" href="{% url 'dashboard:index' %}">
+                        <li><a class="dropdown-item" href="{% url 'dashboard:profile' %}">
                             <i class="fas fa-user me-2"></i>個人資料
                         </a></li>
                         <li><a class="dropdown-item" href="{% url 'dashboard:index' %}">
@@ -82,8 +82,8 @@
                 </div>
                 {% else %}
                 <div class="d-flex">
-                    <a href="{% url 'dashboard:oauth2_login' %}" class="btn btn-outline-primary me-2">登入</a>
-                    <a href="{% url 'dashboard:oauth2_login' %}" class="btn btn-primary">註冊</a>
+                    <a href="{% url 'account_login' %}" class="btn btn-outline-primary me-2">登入</a>
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary">註冊</a>
                 </div>
                 {% endif %}
                 

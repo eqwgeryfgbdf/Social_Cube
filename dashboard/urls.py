@@ -19,6 +19,7 @@ analytics_patterns = [
 urlpatterns = [
     # Main views
     path('', views.index, name='index'),
+    path('profile/', views.profile, name='profile'),
     path('servers/', views.server_list, name='servers'),
     path('stats/', views.stats, name='stats'),
     

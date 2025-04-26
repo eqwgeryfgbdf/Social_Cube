@@ -153,6 +153,16 @@ ACCOUNT_LOGIN_METHODS = {'username'}
 ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*', 'email']
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_ADAPTER = 'dashboard.adapters.discord.DiscordSocialAccountAdapter'
+
+# Discord OAuth2 provider settings
+SOCIALACCOUNT_PROVIDERS = {
+    'discord': {
+        'SCOPE': DISCORD_SCOPE,
+        'AUTH_PARAMS': {'prompt': 'consent'},
+        'VERIFIED_EMAIL': True
+    }
+}
 
 # Discord OAuth2 settings
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID', default='')

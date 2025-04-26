@@ -1,0 +1,90 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold mb-6 text-center">Your Profile</h1>
+        
+        {% if user.is_authenticated %}
+            <div class="flex flex-col md:flex-row items-center md:items-start mb-8">
+                <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                    {% if discord_account.extra_data.avatar %}
+                        <img src="https://cdn.discordapp.com/avatars/{{ discord_account.extra_data.id }}/{{ discord_account.extra_data.avatar }}.png" 
+                             alt="{{ user.username }}" 
+                             class="w-32 h-32 rounded-full border-4 border-indigo-500">
+                    {% else %}
+                        <img src="{% static 'img/default-avatar.png' %}" 
+                             alt="{{ user.username }}" 
+                             class="w-32 h-32 rounded-full border-4 border-gray-300">
+                    {% endif %}
+                </div>
+                
+                <div class="flex-grow text-center md:text-left">
+                    <h2 class="text-2xl font-semibold mb-2">{{ user.username }}</h2>
+                    
+                    {% if discord_account %}
+                        <div class="mb-4">
+                            <span class="text-gray-600">Discord:</span>
+                            <span class="font-medium">{{ discord_account.extra_data.username }}#{{ discord_account.extra_data.discriminator }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if user.email %}
+                        <div class="mb-4">
+                            <span class="text-gray-600">Email:</span>
+                            <span class="font-medium">{{ user.email }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <span class="text-gray-600">Joined:</span>
+                        <span class="font-medium">{{ user.date_joined|date:"F j, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if discord_guilds %}
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">Your Discord Servers</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {% for guild in discord_guilds %}
+                            <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                                {% if guild.icon %}
+                                    <img src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png" 
+                                         alt="{{ guild.name }}" 
+                                         class="w-16 h-16 rounded-full mx-auto mb-2">
+                                {% else %}
+                                    <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-gray-500 text-xl font-bold">{{ guild.name|slice:":1" }}</span>
+                                    </div>
+                                {% endif %}
+                                <h4 class="text-center font-medium">{{ guild.name }}</h4>
+                                {% if guild.owner %}
+                                    <span class="block text-center text-xs text-green-600">Owner</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="mt-8 text-center">
+                <a href="{% url 'account_logout' %}" 
+                   class="inline-block bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                    Logout
+                </a>
+            </div>
+            
+        {% else %}
+            <div class="text-center py-8">
+                <p class="text-xl text-gray-600 mb-6">You need to be logged in to view your profile.</p>
+                <a href="{% url 'account_login' %}" 
+                   class="inline-block bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                    Login with Discord
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
