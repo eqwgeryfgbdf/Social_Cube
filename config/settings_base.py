@@ -62,9 +62,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'dashboard.middleware.DiscordTokenRefreshMiddleware',  # Token refresh middleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',  # Django-allauth middleware
+    'dashboard.middleware.RequestLogMiddleware',  # Request logging middleware (only in debug mode)
 ]
 
 # URL configuration
@@ -145,6 +147,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     # Django-allauth backend
     'allauth.account.auth_backends.AuthenticationBackend',
+    # Custom Discord backend
+    'dashboard.auth_backends.DiscordAuthenticationBackend',
 ]
 
 # Django-allauth settings
