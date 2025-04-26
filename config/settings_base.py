@@ -37,6 +37,10 @@ THIRD_PARTY_APPS = [
     'crispy_bootstrap5',
     'corsheaders',
     'rest_framework',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.discord',
 ]
 
 # Project apps
@@ -60,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Django-allauth middleware
 ]
 
 # URL configuration
@@ -79,7 +84,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',
+                'django.template.context_processors.request',  # Required by allauth
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -129,10 +134,32 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Discord OAuth2 base settings (without credentials)
-DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI', default='http://localhost:8000/oauth2/callback/')
+DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI', default='http://localhost:8000/accounts/discord/login/callback/')
+
+# Discord OAuth scope
+DISCORD_SCOPE = ['identify', 'email', 'guilds']
 
 # Authentication settings
-LOGIN_URL = 'dashboard:oauth2_login'
+AUTHENTICATION_BACKENDS = [
+    # Django default backend
+    'django.contrib.auth.backends.ModelBackend',
+    # Django-allauth backend
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Django-allauth settings
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_LOGIN_METHODS = {'username'}
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*', 'email']
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_STORE_TOKENS = True
+
+# Discord OAuth2 settings
+DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID', default='')
+DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET', default='')
+
+# URLs
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'dashboard:index'
 LOGOUT_REDIRECT_URL = 'dashboard:index'
 

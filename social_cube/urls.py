@@ -26,6 +26,7 @@ path('bots/', include(('bot_management.urls', 'bot_management'), namespace='bot_
 path('api/', include(('api.urls', 'api'), namespace='api')),
     
     # Authentication
+    path('accounts/', include('allauth.urls')),  # Django-allauth URLs
     path('auth/', include([
         path('discord/', include(('dashboard.auth_urls', 'discord_auth'), namespace='discord_auth')),
         path('accounts/', include('django.contrib.auth.urls')),

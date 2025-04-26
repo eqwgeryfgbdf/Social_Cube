@@ -102,6 +102,8 @@ Refer to each app's `models.py` for detailed schema information.
    python scripts/setup_env.py
    ```
    Edit the `.env` file to add your Discord OAuth2 credentials.
+   
+   > **Important**: For Discord OAuth2 setup, follow the detailed instructions in [Discord Application Setup Guide](docs/discord_app_setup.md).
 
 4. Run migrations:
    ```bash
@@ -115,7 +117,11 @@ Refer to each app's `models.py` for detailed schema information.
 
 6. Run the development server:
    ```bash
-   python scripts/run_dev.py
+   # On Windows
+   run_dev.bat
+   
+   # On macOS/Linux
+   ./run_dev.sh
    ```
    Or directly:
    ```bash

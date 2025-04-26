@@ -1,0 +1,115 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold mb-4">{% trans "Sign In" %}</h1>
+            
+            <p class="text-gray-600 mb-6">
+                {% blocktrans %}Log in to your Social Cube account to manage your Discord bots.{% endblocktrans %}
+            </p>
+            
+            {% get_providers as socialaccount_providers %}
+            
+            {% if socialaccount_providers %}
+                <div class="socialaccount_providers mb-6">
+                    <p class="text-sm text-gray-500 mb-3">{% trans "Sign in with one of your existing accounts:" %}</p>
+                    
+                    <div class="flex flex-col space-y-3">
+                        {% for provider in socialaccount_providers %}
+                            {% if provider.id == "discord" %}
+                                <a href="{% provider_login_url provider.id process='login' %}" 
+                                   class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center">
+                                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286z" />
+                                    </svg>
+                                    {% trans "Sign in with Discord" %}
+                                </a>
+                            {% else %}
+                                <a href="{% provider_login_url provider.id process='login' %}" 
+                                   class="inline-block bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">
+                                    {% trans "Sign in with" %} {{provider.name}}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="login-or py-3 border-t border-b border-gray-300 my-4">
+                <span class="block text-center text-sm text-gray-500 -mt-3 bg-white w-8 mx-auto">{% trans "or" %}</span>
+            </div>
+            
+            <form class="login space-y-4" method="POST" action="{% url 'account_login' %}">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        <p class="font-bold">{% trans "Please correct the errors below:" %}</p>
+                        {{ form.non_field_errors }}
+                        {% for field in form %}
+                            {% if field.errors %}
+                                <p>{{ field.label }}: {{ field.errors|striptags }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="id_login">
+                        {% trans "Username or Email:" %}
+                    </label>
+                    <input type="text" name="login" id="id_login" 
+                           class="w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" 
+                           required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="id_password">
+                        {% trans "Password:" %}
+                    </label>
+                    <input type="password" name="password" id="id_password" 
+                           class="w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" 
+                           required>
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" name="remember" id="id_remember" 
+                           class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label class="ml-2 block text-sm text-gray-700" for="id_remember">
+                        {% trans "Remember Me" %}
+                    </label>
+                </div>
+                
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+                
+                <div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                        {% trans "Sign In" %}
+                    </button>
+                </div>
+                
+                <div class="text-sm mt-3 text-center">
+                    <a class="text-indigo-600 hover:text-indigo-800" href="{% url 'account_reset_password' %}">
+                        {% trans "Forgot Password?" %}
+                    </a>
+                </div>
+            </form>
+            
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-600">
+                    {% trans "Don't have an account?" %}
+                    <a href="{% url 'account_signup' %}" class="text-indigo-600 hover:text-indigo-800">
+                        {% trans "Sign up" %}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

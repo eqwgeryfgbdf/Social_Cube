@@ -6,7 +6,16 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'social_cube.settings')
+    # Check for DJANGO_ENV environment variable to determine which settings to use
+    django_env = os.environ.get('DJANGO_ENV', 'development').lower()
+    
+    if django_env == 'production':
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings_prod')
+    elif django_env == 'test':
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings_test')
+    else:  # Default to development
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings_dev')
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

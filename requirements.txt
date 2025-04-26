@@ -11,3 +11,5 @@ django-crispy-forms>=2.1
 crispy-bootstrap5>=2023.10
 gunicorn>=21.2.0
 cryptography>=42.0.7
+django-allauth>=0.65.0
+requests>=2.32.0
