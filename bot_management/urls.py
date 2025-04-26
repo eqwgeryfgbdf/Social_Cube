@@ -12,4 +12,9 @@ urlpatterns = [
     path('bot/<int:bot_id>/delete/', views.bot_delete, name='bot_delete'),
     path('bot/<int:bot_id>/toggle-status/', views.toggle_bot_status, name='toggle_bot_status'),
     path('bot/<int:bot_id>/logs/', views.bot_logs, name='bot_logs'),
+    
+    # Bot operation
+    path('bot/<int:bot_id>/start/', views.start_bot, name='start_bot'),
+    path('bot/<int:bot_id>/stop/', views.stop_bot, name='stop_bot'),
+    path('bot/<int:bot_id>/restart/', views.restart_bot, name='restart_bot'),
 ]

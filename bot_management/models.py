@@ -3,9 +3,13 @@ from django.contrib.auth.models import User
 from cryptography.fernet import Fernet
 import environ
 import os
+import logging
 
 # Initialize environment variables
 env = environ.Env()
+
+# Get logger
+logger = logging.getLogger(__name__)
 
 class Bot(models.Model):
     """Model representing a Discord bot"""
@@ -25,11 +29,65 @@ class Bot(models.Model):
     
     def save(self, *args, **kwargs):
         # Encrypt the token if it's not already encrypted
-        if not self.id:  # New bot
-            key = env('BOT_TOKEN_KEY')
-            f = Fernet(key.encode() if isinstance(key, str) else key)
-            self.token = f.encrypt(self.token.encode()).decode()
+        if not self.id or kwargs.get('update_fields') and 'token' in kwargs.get('update_fields'):
+            # Only update token if it's not empty and doesn't look encrypted
+            if self.token and len(self.token) < 100:  # Simple check for likely unencrypted tokens
+                key = env('BOT_TOKEN_KEY')
+                f = Fernet(key.encode() if isinstance(key, str) else key)
+                self.token = f.encrypt(self.token.encode()).decode()
+        
         super().save(*args, **kwargs)
+    
+    def start(self):
+        """Start the bot instance"""
+        from bot_management.discord_bot.service import bot_manager
+        
+        success = bot_manager.start_bot(self.id)
+        
+        if success:
+            BotLog.objects.create(
+                bot=self,
+                event_type='BOT_START_REQUESTED',
+                description=f'Bot start requested via model method'
+            )
+            
+        return success
+    
+    def stop(self):
+        """Stop the bot instance"""
+        from bot_management.discord_bot.service import bot_manager
+        
+        success = bot_manager.stop_bot(self.id)
+        
+        if success:
+            BotLog.objects.create(
+                bot=self,
+                event_type='BOT_STOP_REQUESTED',
+                description=f'Bot stop requested via model method'
+            )
+            
+        return success
+    
+    def restart(self):
+        """Restart the bot instance"""
+        from bot_management.discord_bot.service import bot_manager
+        
+        success = bot_manager.restart_bot(self.id)
+        
+        if success:
+            BotLog.objects.create(
+                bot=self,
+                event_type='BOT_RESTART_REQUESTED',
+                description=f'Bot restart requested via model method'
+            )
+            
+        return success
+    
+    def get_status(self):
+        """Get the bot's current status"""
+        from bot_management.discord_bot.service import bot_manager
+        
+        return bot_manager.get_bot_status(self.id)
 
 class BotLog(models.Model):
     """Model for logging bot activity"""

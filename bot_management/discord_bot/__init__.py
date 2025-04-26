@@ -1,0 +1,1 @@
+# Discord Bot integration package for Social Cube

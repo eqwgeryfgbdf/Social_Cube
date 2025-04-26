@@ -7,15 +7,25 @@ from django.views.decorators.http import require_POST
 from dashboard.decorators import discord_login_required
 from .models import Bot, BotLog
 from .forms import BotForm, BotLogForm
+import time
 
 @discord_login_required
 def index(request):
     """Bot management index view showing a list of user's bots"""
     bots = Bot.objects.filter(owner=request.user).order_by('-created_at')
     
+    # Get status for each bot
+    bots_with_status = []
+    for bot in bots:
+        status = bot.get_status()
+        bots_with_status.append({
+            'bot': bot,
+            'status': status
+        })
+    
     return render(request, 'bot_management/index.html', {
         'title': 'Bot Management',
-        'bots': bots,
+        'bots': bots_with_status,
     })
 
 @discord_login_required
@@ -24,10 +34,24 @@ def bot_detail(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     logs = bot.logs.all().order_by('-timestamp')[:10]  # Get the 10 most recent logs
     
+    # Get bot status
+    status = bot.get_status()
+    
+    # Format uptime if available
+    uptime_str = ""
+    if status["running"] and status["connected"] and status["uptime"] > 0:
+        uptime = status["uptime"]
+        days, remainder = divmod(uptime, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        uptime_str = f"{int(days)}d {int(hours)}h {int(minutes)}m {int(seconds)}s"
+    
     return render(request, 'bot_management/bot_detail.html', {
         'title': f'Bot: {bot.name}',
         'bot': bot,
         'logs': logs,
+        'status': status,
+        'uptime': uptime_str,
     })
 
 @discord_login_required
@@ -66,7 +90,17 @@ def bot_update(request, bot_id):
     if request.method == 'POST':
         form = BotForm(request.POST, instance=bot)
         if form.is_valid():
-            form.save()
+            # Check if token was changed
+            token_changed = form.cleaned_data.get('token') != ''
+            
+            # If token wasn't provided, don't update it
+            if not token_changed:
+                form.cleaned_data.pop('token')
+                bot = form.save(commit=False)
+                bot.token = Bot.objects.get(id=bot_id).token  # Keep original token
+                bot.save()
+            else:
+                form.save()
             
             # Create a log entry for bot update
             BotLog.objects.create(
@@ -74,6 +108,12 @@ def bot_update(request, bot_id):
                 event_type='BOT_UPDATED',
                 description=f'Bot updated by {request.user.username}'
             )
+            
+            # If the bot is running and the token was changed, restart it
+            status = bot.get_status()
+            if status["running"] and token_changed:
+                bot.restart()
+                messages.info(request, f'Bot "{bot.name}" is being restarted with the new token.')
             
             messages.success(request, f'Bot "{bot.name}" has been updated successfully!')
             return redirect('bot_management:bot_detail', bot_id=bot.id)
@@ -95,6 +135,12 @@ def bot_update(request, bot_id):
 def bot_delete(request, bot_id):
     """View to delete a bot"""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    
+    # Stop the bot if it's running
+    status = bot.get_status()
+    if status["running"]:
+        bot.stop()
+    
     bot_name = bot.name
     
     # Delete the bot
@@ -121,6 +167,12 @@ def toggle_bot_status(request, bot_id):
         description=f'Bot {status} by {request.user.username}'
     )
     
+    # If the bot is now inactive, stop it if it's running
+    if not bot.is_active:
+        bot_status = bot.get_status()
+        if bot_status["running"]:
+            bot.stop()
+    
     return JsonResponse({
         'success': True,
         'is_active': bot.is_active,
@@ -138,3 +190,67 @@ def bot_logs(request, bot_id):
         'bot': bot,
         'logs': logs,
     })
+
+@discord_login_required
+@require_POST
+def start_bot(request, bot_id):
+    """View to start a bot"""
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    
+    # Check if the bot is already running
+    status = bot.get_status()
+    if status["running"]:
+        messages.warning(request, f'Bot "{bot.name}" is already running.')
+    else:
+        # Ensure the bot is active
+        if not bot.is_active:
+            bot.is_active = True
+            bot.save()
+            messages.info(request, f'Bot "{bot.name}" has been activated.')
+        
+        # Start the bot
+        success = bot.start()
+        
+        if success:
+            messages.success(request, f'Bot "{bot.name}" has been started successfully!')
+        else:
+            messages.error(request, f'Failed to start bot "{bot.name}". Check the logs for details.')
+    
+    return redirect('bot_management:bot_detail', bot_id=bot.id)
+
+@discord_login_required
+@require_POST
+def stop_bot(request, bot_id):
+    """View to stop a bot"""
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    
+    # Check if the bot is running
+    status = bot.get_status()
+    if not status["running"]:
+        messages.warning(request, f'Bot "{bot.name}" is not running.')
+    else:
+        # Stop the bot
+        success = bot.stop()
+        
+        if success:
+            messages.success(request, f'Bot "{bot.name}" has been stopped successfully!')
+        else:
+            messages.error(request, f'Failed to stop bot "{bot.name}". Check the logs for details.')
+    
+    return redirect('bot_management:bot_detail', bot_id=bot.id)
+
+@discord_login_required
+@require_POST
+def restart_bot(request, bot_id):
+    """View to restart a bot"""
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    
+    # Restart the bot
+    success = bot.restart()
+    
+    if success:
+        messages.success(request, f'Bot "{bot.name}" is being restarted!')
+    else:
+        messages.error(request, f'Failed to restart bot "{bot.name}". Check the logs for details.')
+    
+    return redirect('bot_management:bot_detail', bot_id=bot.id)
