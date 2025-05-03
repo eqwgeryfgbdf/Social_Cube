@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Option - Social Cube{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Delete Command Option</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_list' %}">Commands</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_detail' command.id %}">{{ command.name }}</a></li>
+        <li class="breadcrumb-item active">Delete Option</li>
+    </ol>
+    
+    <div class="row">
+        <div class="col-lg-6 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                    Confirm Option Deletion
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading"><i class="fas fa-exclamation-circle me-1"></i> Warning!</h5>
+                        <p>You are about to delete the option <strong>{{ option.name }}</strong> from command <strong>{{ command.name }}</strong>.</p>
+                        <hr>
+                        <p class="mb-0">This action will permanently remove this option from the command and will take effect the next time the command is synced with Discord.</p>
+                        {% if option.children.exists %}
+                            <hr>
+                            <p class="mb-0"><strong>Note:</strong> This will also delete all child options ({{ option.children.count }}) associated with this option.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">Option Details</div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered mb-0">
+                                    <tr>
+                                        <th>Name</th>
+                                        <td>{{ option.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Type</th>
+                                        <td>{{ option.get_type_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description</th>
+                                        <td>{{ option.description }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Required</th>
+                                        <td>{% if option.required %}Yes{% else %}No{% endif %}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'command_detail' command.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i> Delete Option
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,427 @@
+{% extends 'dashboard/new_base.html' %}
+
+{% block title %}{{ server.name }} - 伺服器詳情 - Social Cube{% endblock %}
+
+{% block page_title %}{{ server.name }}{% endblock %}
+
+{% block mobile_title %}{{ server.name }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboard:index' %}" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">儀表板</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboard:servers' %}" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">伺服器</a>
+</li>
+<li class="breadcrumb-item">
+    <span class="text-gray-800 dark:text-gray-200">{{ server.name }}</span>
+</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:server_edit' server.id %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+    <i class="fas fa-cog mr-2"></i>
+    設定伺服器
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Server Overview Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Server Info Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center space-x-4 mb-6">
+                {% if server.icon_url %}
+                    <img src="{{ server.icon_url }}" alt="{{ server.name }}" class="img-avatar img-avatar-xl">
+                {% else %}
+                    <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <i class="fas fa-server text-3xl text-gray-400 dark:text-gray-500"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ server.name }}</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">ID: {{ server.guild_id }}</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">伺服器資訊</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">總成員數</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ server.member_count|default:"未知" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">伺服器地區</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ server.region|default:"未知" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">建立日期</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ server.created_at|date:"Y-m-d" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">最後同步</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ server.last_sync|default:"從未"|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">擁有者</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ server.owner_id|default:"未知" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">連接的機器人</h3>
+                    <div class="space-y-2">
+                        {% for bot in server.bots %}
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <div class="flex items-center">
+                                    {% if bot.avatar_url %}
+                                        <img src="{{ bot.avatar_url }}" alt="{{ bot.name }}" class="img-avatar img-avatar-sm mr-3">
+                                    {% else %}
+                                        <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mr-3">
+                                            <i class="fas fa-robot text-primary-600 dark:text-primary-400"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ bot.name }}</span>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full {% if bot.is_active %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                                    {{ bot.is_active|yesno:"運行中,離線" }}
+                                </span>
+                            </div>
+                        {% empty %}
+                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">沒有連接的機器人</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if settings %}
+                <div>
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">伺服器設定</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">指令前綴</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ settings.prefix|default:"/" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">通知頻道</span>
+                            <span class="text-gray-900 dark:text-white font-medium">
+                                {% if settings.notification_channel_id %}
+                                    #{{ settings.notification_channel_name|default:settings.notification_channel_id }}
+                                {% else %}
+                                    無
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">歡迎訊息</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ settings.enable_welcome_messages|yesno:"啟用,停用" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">告別訊息</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ settings.enable_goodbye_messages|yesno:"啟用,停用" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <a href="{% url 'dashboard:server_edit' server.id %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-cog mr-2"></i>
+                        編輯伺服器設定
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Channels Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">頻道列表</h3>
+            
+            <div class="space-y-4 overflow-y-auto max-h-[500px] pr-2">
+                {% if categories %}
+                    {% for category_id, category in categories.items %}
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase">
+                                <i class="fas fa-folder mr-2"></i>{{ category.name }}
+                            </h4>
+                            <div class="space-y-1 pl-6">
+                                {% for channel in category.channels %}
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas {% if channel.type == 0 %}fa-hashtag text-gray-500 dark:text-gray-400{% elif channel.type == 2 %}fa-volume-up text-green-500 dark:text-green-400{% else %}fa-circle text-blue-500 dark:text-blue-400{% endif %} mr-2"></i>
+                                        <span class="text-gray-700 dark:text-gray-300">{{ channel.name }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if uncategorized %}
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase">
+                            <i class="fas fa-layer-group mr-2"></i>未分類頻道
+                        </h4>
+                        <div class="space-y-1 pl-6">
+                            {% for channel in uncategorized %}
+                                <div class="flex items-center text-sm">
+                                    <i class="fas {% if channel.type == 0 %}fa-hashtag text-gray-500 dark:text-gray-400{% elif channel.type == 2 %}fa-volume-up text-green-500 dark:text-green-400{% else %}fa-circle text-blue-500 dark:text-blue-400{% endif %} mr-2"></i>
+                                    <span class="text-gray-700 dark:text-gray-300">{{ channel.name }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if not categories and not uncategorized %}
+                    <div class="text-center p-6">
+                        <div class="mb-4">
+                            <i class="fas fa-folder-open text-gray-400 dark:text-gray-500 text-3xl"></i>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400">沒有可用的頻道信息</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">請嘗試重新同步伺服器資料</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button id="syncChannelsBtn" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    更新頻道資訊
+                </button>
+            </div>
+        </div>
+        
+        <!-- Commands Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">可用指令</h3>
+            
+            <div class="space-y-4 overflow-y-auto max-h-[500px] pr-2">
+                {% if commands %}
+                    {% regroup commands by bot.name as bot_commands %}
+                    {% for bot_group in bot_commands %}
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                                <i class="fas fa-robot mr-2 text-primary-600 dark:text-primary-400"></i>
+                                {{ bot_group.grouper }}
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {% for command in bot_group.list %}
+                                    <div class="p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <div class="flex justify-between">
+                                            <div class="font-medium text-gray-800 dark:text-gray-200">
+                                                {% if command.guild %}
+                                                    <span class="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded mr-1">本地</span>
+                                                {% else %}
+                                                    <span class="text-xs px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded mr-1">全域</span>
+                                                {% endif %}
+                                                /{{ command.name }}
+                                            </div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {% if command.is_active %}
+                                                    <span class="text-green-600 dark:text-green-400">啟用</span>
+                                                {% else %}
+                                                    <span class="text-red-600 dark:text-red-400">停用</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if command.description %}
+                                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">{{ command.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center p-6">
+                        <div class="mb-4">
+                            <i class="fas fa-terminal text-gray-400 dark:text-gray-500 text-3xl"></i>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400">沒有可用的命令</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">添加一個機器人到此伺服器以使用命令</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button id="syncCommandsBtn" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    同步指令
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Server Activity Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">伺服器活動</h3>
+            <button id="refreshLogsBtn" class="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            時間
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            機器人
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            事件類型
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            描述
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for log in logs %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                {{ log.timestamp|date:"Y-m-d H:i:s" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {{ log.bot.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full
+                                    {% if 'error' in log.event_type|lower %}
+                                        bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400
+                                    {% elif 'warn' in log.event_type|lower %}
+                                        bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                                    {% elif 'command' in log.event_type|lower %}
+                                        bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400
+                                    {% else %}
+                                        bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300
+                                    {% endif %}">
+                                    {{ log.event_type }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-md truncate">
+                                {{ log.description }}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                沒有活動記錄
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh logs button
+    const refreshLogsBtn = document.getElementById('refreshLogsBtn');
+    if (refreshLogsBtn) {
+        refreshLogsBtn.addEventListener('click', function() {
+            // Show loading spinner
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.disabled = true;
+            
+            // Reload the page
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        });
+    }
+    
+    // Sync channels button
+    const syncChannelsBtn = document.getElementById('syncChannelsBtn');
+    if (syncChannelsBtn) {
+        syncChannelsBtn.addEventListener('click', function() {
+            if (confirm('確定要同步頻道資訊嗎？')) {
+                // Show loading spinner
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 同步中...';
+                this.disabled = true;
+                
+                // Make API request to sync channels
+                fetch(`/api/servers/{{ server.id }}/sync-channels/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page to show updated channels
+                        window.location.reload();
+                    } else {
+                        alert('同步頻道失敗：' + (data.error || '未知錯誤'));
+                        // Reset button
+                        this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> 更新頻道資訊';
+                        this.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('同步頻道失敗，請稍後再試');
+                    // Reset button
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> 更新頻道資訊';
+                    this.disabled = false;
+                });
+            }
+        });
+    }
+    
+    // Sync commands button
+    const syncCommandsBtn = document.getElementById('syncCommandsBtn');
+    if (syncCommandsBtn) {
+        syncCommandsBtn.addEventListener('click', function() {
+            if (confirm('確定要同步命令嗎？')) {
+                // Show loading spinner
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 同步中...';
+                this.disabled = true;
+                
+                // Make API request to sync commands
+                fetch(`/api/servers/{{ server.id }}/sync-commands/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page to show updated commands
+                        window.location.reload();
+                    } else {
+                        alert('同步命令失敗：' + (data.error || '未知錯誤'));
+                        // Reset button
+                        this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> 同步指令';
+                        this.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('同步命令失敗，請稍後再試');
+                    // Reset button
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> 同步指令';
+                    this.disabled = false;
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

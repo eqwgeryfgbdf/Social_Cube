@@ -1,0 +1,165 @@
+/* Bug Dashboard Styles */
+
+/* Chart Containers */
+.chart-container {
+    position: relative;
+    height: 16rem;
+}
+
+/* Status Indicators */
+.status-indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-indicator.new { background-color: #3B82F6; }
+.status-indicator.triaged { background-color: #EAB308; }
+.status-indicator.in-progress { background-color: #A855F7; }
+.status-indicator.fixed { background-color: #22C55E; }
+.status-indicator.verified { background-color: #059669; }
+.status-indicator.closed { background-color: #6B7280; }
+
+/* Severity Indicators */
+.severity-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.severity-badge.critical { background-color: #FEE2E2; color: #991B1B; }
+.severity-badge.high { background-color: #FFEDD5; color: #9A3412; }
+.severity-badge.medium { background-color: #FEF3C7; color: #92400E; }
+.severity-badge.low { background-color: #DCFCE7; color: #166534; }
+.severity-badge.trivial { background-color: #DBEAFE; color: #1E40AF; }
+
+/* Card Hover Effects */
+.stat-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Bug List Item Hover */
+.bug-list-item {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.bug-list-item:hover {
+    background-color: rgba(243, 244, 246, 0.8);
+}
+
+.dark .bug-list-item:hover {
+    background-color: rgba(55, 65, 81, 0.5);
+}
+
+/* Filter Sidebar */
+.filter-section {
+    margin-bottom: 1.5rem;
+}
+
+.filter-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #4B5563;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.dark .filter-title {
+    color: #9CA3AF;
+    border-bottom-color: #374151;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+    color: #4B5563;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.filter-option:hover {
+    background-color: #F3F4F6;
+}
+
+.dark .filter-option {
+    color: #D1D5DB;
+}
+
+.dark .filter-option:hover {
+    background-color: #374151;
+}
+
+.filter-option .count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+.dark .filter-option .count {
+    color: #9CA3AF;
+}
+
+/* Age Distribution */
+.age-stat {
+    text-align: center;
+    padding: 1rem;
+    background-color: #F9FAFB;
+    border-radius: 0.5rem;
+}
+
+.dark .age-stat {
+    background-color: #1F2937;
+}
+
+.age-stat .number {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #3B82F6;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.dark .age-stat .number {
+    color: #60A5FA;
+}
+
+.age-stat .label {
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.dark .age-stat .label {
+    color: #9CA3AF;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+    .stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    
+    .chart-container {
+        height: 12rem;
+    }
+    
+    .age-stat .number {
+        font-size: 1.5rem;
+    }
+    
+    .age-stat .label {
+        font-size: 0.75rem;
+    }
+}

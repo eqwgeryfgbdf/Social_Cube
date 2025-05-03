@@ -1,0 +1,27 @@
+Your {{ digest_period|title }} Bug Digest
+
+Hello {{ user.first_name|default:user.username }},
+
+Here's a summary of bug activity since {{ since_date|date:"F j, Y" }}.
+
+Total Notifications: {{ notifications|length }}
+
+{% for notification in notifications %}
+----------------------------------------------------------------------
+{{ notification.notification_type|upper }} - {{ notification.created_at|date:"F j, Y, g:i a" }}
+
+{{ notification.title }}
+
+{{ notification.message }}
+
+Bug URL: {{ settings.BASE_URL }}{% url 'bug_tracking:bug_detail' notification.bug.id %}
+----------------------------------------------------------------------
+{% endfor %}
+
+View all your notifications here: {{ settings.BASE_URL }}{% url 'bug_tracking:notifications' %}
+
+---
+This email was sent from the Social Cube Bug Tracking System.
+You received this digest based on your notification preferences.
+
+Manage your notification settings: {{ settings.BASE_URL }}{% url 'bug_tracking:notification_settings' %}

@@ -1,0 +1,207 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}Bug Notification Settings{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/bug_notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-screen-xl">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Notification Settings</h1>
+            <div class="mt-4 md:mt-0 flex space-x-2">
+                <a href="{% url 'bug_tracking:bug_dashboard' %}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150">
+                    <i class="fas fa-dashboard mr-2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'bug_tracking:notifications' %}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150">
+                    <i class="fas fa-bell mr-2"></i>
+                    <span>Notifications</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Settings Form -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <form method="post" action="{% url 'bug_tracking:notification_settings' %}">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 dark:bg-red-900/30 dark:border-red-700">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500 dark:text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700 dark:text-red-300">
+                                {{ form.non_field_errors }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-6 {% if message.tags == 'success' %}bg-green-50 border-l-4 border-green-500 dark:bg-green-900/30 dark:border-green-700{% else %}bg-red-50 border-l-4 border-red-500 dark:bg-red-900/30 dark:border-red-700{% endif %} p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500 dark:text-green-400{% else %}fa-exclamation-circle text-red-500 dark:text-red-400{% endif %}"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm {% if message.tags == 'success' %}text-green-700 dark:text-green-300{% else %}text-red-700 dark:text-red-300{% endif %}">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="space-y-8">
+                <!-- Web Notifications -->
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">In-App Notifications</h2>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.web_notify_new_bugs }}
+                                <label for="{{ form.web_notify_new_bugs.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    New bugs
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive notifications when new bugs are reported</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.web_notify_status_changes }}
+                                <label for="{{ form.web_notify_status_changes.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Status changes
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive notifications when bug statuses change</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.web_notify_comments }}
+                                <label for="{{ form.web_notify_comments.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Comments
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive notifications for new comments on bugs</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.web_notify_assignments }}
+                                <label for="{{ form.web_notify_assignments.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Assignments
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive notifications when bugs are assigned to you</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.web_notify_mentions }}
+                                <label for="{{ form.web_notify_mentions.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Mentions
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive notifications when you are mentioned in comments</p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Email Notifications -->
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Email Notifications</h2>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.email_notify_new_bugs }}
+                                <label for="{{ form.email_notify_new_bugs.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    New bugs
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive emails when new bugs are reported</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.email_notify_status_changes }}
+                                <label for="{{ form.email_notify_status_changes.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Status changes
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive emails when bug statuses change</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.email_notify_comments }}
+                                <label for="{{ form.email_notify_comments.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Comments
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive emails for new comments on bugs</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.email_notify_assignments }}
+                                <label for="{{ form.email_notify_assignments.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Assignments
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive emails when bugs are assigned to you</p>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.email_notify_mentions }}
+                                <label for="{{ form.email_notify_mentions.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Mentions
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive emails when you are mentioned in comments</p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Email Digest Settings -->
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Email Digest</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.email_digest_frequency.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Digest Frequency
+                            </label>
+                            <div class="mt-1">
+                                {{ form.email_digest_frequency }}
+                            </div>
+                            {% if form.email_digest_frequency.errors %}
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">
+                                    {{ form.email_digest_frequency.errors }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end">
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                    Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

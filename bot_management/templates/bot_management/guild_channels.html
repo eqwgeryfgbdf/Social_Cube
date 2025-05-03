@@ -1,0 +1,201 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}頻道 - {{ guild.name }} - Social Cube{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">儀表板</a></li>
+<li class="breadcrumb-item"><a href="{% url 'guild_list' %}?bot_id={{ guild.bot.id }}">伺服器</a></li>
+<li class="breadcrumb-item"><a href="{% url 'guild_detail' guild.id %}">{{ guild.name }}</a></li>
+<li class="breadcrumb-item active">頻道</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">{{ guild.name }} 的頻道</h1>
+                <div>
+                    {% if guild.icon_url %}
+                        <img src="{{ guild.icon_url }}" alt="{{ guild.name }}" class="rounded-circle" style="width: 64px; height: 64px;">
+                    {% else %}
+                        <div class="rounded-circle bg-light d-flex justify-content-center align-items-center" style="width: 64px; height: 64px;">
+                            <i class="bi bi-discord fs-2 text-primary"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <form action="{% url 'sync_guild' guild.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success" onclick="return confirm('是否與 Discord 同步伺服器頻道?')">
+                        <i class="bi bi-arrow-repeat me-1"></i> 同步頻道
+                    </button>
+                </form>
+                <a href="{% url 'guild_detail' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-info-circle me-1"></i> 伺服器詳情
+                </a>
+                <a href="{% url 'guild_commands' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-terminal me-1"></i> 檢視指令
+                </a>
+                <a href="{% url 'guild_settings' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-gear me-1"></i> 管理設定
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-hash me-1"></i>
+            伺服器頻道
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4 text-center">
+                    <div class="border rounded p-3 h-100 d-flex flex-column justify-content-center">
+                        <h3 class="display-4 mb-0">{{ guild.channels.all|length }}</h3>
+                        <p class="mb-0">總頻道數</p>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="row h-100">
+                        <div class="col-sm-4 text-center mb-3 mb-sm-0">
+                            <div class="border rounded p-2 h-100 d-flex flex-column justify-content-center">
+                                <h4 class="mb-0">{{ categories|length }}</h4>
+                                <p class="mb-0 small">類別</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 text-center mb-3 mb-sm-0">
+                            <div class="border rounded p-2 h-100 d-flex flex-column justify-content-center">
+                                <h4 class="mb-0">{{ text_channels|length }}</h4>
+                                <p class="mb-0 small">文字頻道</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 text-center">
+                            <div class="border rounded p-2 h-100 d-flex flex-column justify-content-center">
+                                <h4 class="mb-0">{{ voice_channels|length }}</h4>
+                                <p class="mb-0 small">語音頻道</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if categories %}
+                {% for category in categories %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <i class="bi bi-folder me-1"></i> {{ category.name }}
+                            <span class="badge bg-secondary ms-1">類別</span>
+                            <span class="text-muted ms-2">ID: {{ category.channel_id }}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% for channel in guild.channels.all %}
+                                    {% if channel.category_id == category.channel_id and channel.type != 4 %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                {% if channel.type == 0 %}
+                                                    <i class="bi bi-hash me-1"></i>
+                                                {% elif channel.type == 2 %}
+                                                    <i class="bi bi-mic me-1"></i>
+                                                {% elif channel.type == 5 %}
+                                                    <i class="bi bi-megaphone me-1"></i>
+                                                {% elif channel.type == 13 %}
+                                                    <i class="bi bi-people me-1"></i>
+                                                {% elif channel.type == 15 %}
+                                                    <i class="bi bi-chat-dots me-1"></i>
+                                                {% else %}
+                                                    <i class="bi bi-circle me-1"></i>
+                                                {% endif %}
+                                                {{ channel.name }}
+                                                
+                                                <span class="badge bg-secondary ms-1">{{ channel.get_type_display }}</span>
+                                                {% if channel.is_nsfw %}
+                                                    <span class="badge bg-danger ms-1">NSFW</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <span class="text-muted me-2">位置: {{ channel.position }}</span>
+                                                <span class="badge bg-light text-dark">ID: {{ channel.channel_id }}</span>
+                                            </div>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if uncategorized %}
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <i class="bi bi-question-circle me-1"></i> 未分類
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for channel in uncategorized %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if channel.type == 0 %}
+                                            <i class="bi bi-hash me-1"></i>
+                                        {% elif channel.type == 2 %}
+                                            <i class="bi bi-mic me-1"></i>
+                                        {% elif channel.type == 5 %}
+                                            <i class="bi bi-megaphone me-1"></i>
+                                        {% elif channel.type == 13 %}
+                                            <i class="bi bi-people me-1"></i>
+                                        {% elif channel.type == 15 %}
+                                            <i class="bi bi-chat-dots me-1"></i>
+                                        {% else %}
+                                            <i class="bi bi-circle me-1"></i>
+                                        {% endif %}
+                                        {{ channel.name }}
+                                        
+                                        <span class="badge bg-secondary ms-1">{{ channel.get_type_display }}</span>
+                                        {% if channel.is_nsfw %}
+                                            <span class="badge bg-danger ms-1">NSFW</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <span class="text-muted me-2">位置: {{ channel.position }}</span>
+                                        <span class="badge bg-light text-dark">ID: {{ channel.channel_id }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if not categories and not uncategorized %}
+                <div class="alert alert-info mb-0">
+                    <h5>找不到頻道</h5>
+                    <p>此伺服器沒有任何頻道或尚未同步。點擊「同步頻道」按鈕從 Discord 獲取最新的頻道資訊。</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tooltips initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

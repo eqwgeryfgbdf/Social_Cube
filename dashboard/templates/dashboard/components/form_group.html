@@ -1,0 +1,20 @@
+{% comment %}
+/**
+ * Form Group Component
+ * 
+ * A standardized form group component for consistent form styling.
+ * 
+ * Usage:
+ * {% include "dashboard/components/form_group.html" with layout="horizontal" %}
+ *   Form controls go here
+ * {% endinclude %}
+ * 
+ * Parameters:
+ * - layout: "horizontal" or "vertical" (default: "vertical")
+ * - spacing: spacing between items (default: 4 for vertical, 2 for horizontal)
+ */
+{% endcomment %}
+
+<div class="{% if layout == 'horizontal' %}flex flex-wrap items-center gap-{{ spacing|default:2 }}{% else %}space-y-{{ spacing|default:4 }}{% endif %} mb-4">
+  {{ content }}
+</div>

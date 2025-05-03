@@ -1,0 +1,33 @@
+{% comment %}
+/**
+ * Card Component
+ * 
+ * A standardized card component for consistent styling across the application.
+ * 
+ * Usage:
+ * {% include "dashboard/components/card.html" with title="Card Title" %}
+ *   Content goes here
+ * {% endinclude %}
+ * 
+ * Parameters:
+ * - title: The title of the card (required)
+ * - no_padding: Boolean to remove padding (default: false)
+ * - no_margin: Boolean to remove margin (default: false)
+ * - header_actions: HTML content for the header right side (optional)
+ */
+{% endcomment %}
+
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow {% if not no_padding %}p-6{% endif %} {% if not no_margin %}mb-6{% endif %}">
+  {% if title %}
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold">{{ title }}</h2>
+    {% if header_actions %}
+    <div class="flex items-center space-x-2">
+      {{ header_actions }}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  {{ content }}
+</div>

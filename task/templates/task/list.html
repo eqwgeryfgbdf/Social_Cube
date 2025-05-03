@@ -1,0 +1,405 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Tasks | Social Cube{% endblock %}
+
+{% block extra_css %}
+<style>
+    .task-status-badge {
+        min-width: 90px;
+        text-align: center;
+    }
+    
+    .task-priority-badge {
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .status-pending { background-color: #ffc107; color: #212529; }
+    .status-in-progress { background-color: #17a2b8; color: white; }
+    .status-completed { background-color: #28a745; color: white; }
+    .status-deferred { background-color: #6c757d; color: white; }
+    .status-canceled { background-color: #dc3545; color: white; }
+    
+    .priority-low { background-color: #28a745; color: white; }
+    .priority-medium { background-color: #17a2b8; color: white; }
+    .priority-high { background-color: #ffc107; color: #212529; }
+    .priority-urgent { background-color: #dc3545; color: white; }
+    
+    .task-tag {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+    }
+    
+    .task-filters {
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .task-actions {
+        min-width: 120px;
+    }
+    
+    .task-title {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    @media (max-width: 768px) {
+        .task-title {
+            max-width: 150px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Tasks</h1>
+        <a href="{% url 'task:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create Task
+        </a>
+    </div>
+    
+    <!-- Task Stats -->
+    <div class="row mb-4">
+        <div class="col-md col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted mb-2">Total</h5>
+                    <p class="card-text display-4">{{ stats.total }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md col-6 mb-3">
+            <div class="card h-100 border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted mb-2">Pending</h5>
+                    <p class="card-text display-4 text-warning">{{ stats.pending }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md col-6 mb-3">
+            <div class="card h-100 border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted mb-2">In Progress</h5>
+                    <p class="card-text display-4 text-info">{{ stats.in_progress }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md col-6 mb-3">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted mb-2">Completed</h5>
+                    <p class="card-text display-4 text-success">{{ stats.completed }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md col-6 mb-3">
+            <div class="card h-100 border-secondary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted mb-2">Other</h5>
+                    <p class="card-text display-4 text-secondary">{{ stats.other }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="task-filters">
+        <form method="get" id="filterForm">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="" {% if not filter_status %}selected{% endif %}>All</option>
+                        <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="deferred" {% if filter_status == 'deferred' %}selected{% endif %}>Deferred</option>
+                        <option value="canceled" {% if filter_status == 'canceled' %}selected{% endif %}>Canceled</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select class="form-select" id="priority" name="priority">
+                        <option value="" {% if not filter_priority %}selected{% endif %}>All</option>
+                        <option value="low" {% if filter_priority == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if filter_priority == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if filter_priority == 'high' %}selected{% endif %}>High</option>
+                        <option value="urgent" {% if filter_priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="tag" class="form-label">Tag</label>
+                    <select class="form-select" id="tag" name="tag">
+                        <option value="" {% if not filter_tag %}selected{% endif %}>All</option>
+                        {% for tag in available_tags %}
+                            <option value="{{ tag.id }}" {% if filter_tag == tag.id|stringformat:"i" %}selected{% endif %}>{{ tag.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" value="{{ filter_search }}">
+                </div>
+                
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'task:list' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Task List -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Tasks</h5>
+                <span class="text-muted">Showing {{ tasks.count }} task{{ tasks.count|pluralize }}</span>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Tags</th>
+                        <th>Due Date</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.id }}</td>
+                        <td class="task-title" title="{{ task.title }}">{{ task.title }}</td>
+                        <td>
+                            <span class="badge task-status-badge status-{{ task.status|slugify }}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge task-priority-badge priority-{{ task.priority }}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% for tag in task.tags.all %}
+                                <span class="task-tag" style="background-color: {{ tag.tag.color }}; color: white;">
+                                    {{ tag.tag.name }}
+                                </span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if task.due_date %}
+                                {{ task.due_date|date:"M d, Y" }}
+                                {% if task.is_overdue %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.created_at|date:"M d, Y" }}</td>
+                        <td class="task-actions">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'task:detail' task.id %}" class="btn btn-outline-primary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'task:edit' task.id %}" class="btn btn-outline-secondary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-outline-success toggle-status-btn" 
+                                        data-task-id="{{ task.id }}" 
+                                        data-current-status="{{ task.status }}"
+                                        title="{% if task.status == 'completed' %}Mark as Pending{% else %}Mark as Completed{% endif %}">
+                                    {% if task.status == 'completed' %}
+                                        <i class="fas fa-undo"></i>
+                                    {% else %}
+                                        <i class="fas fa-check"></i>
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <p class="text-muted mb-2">No tasks found</p>
+                            <a href="{% url 'task:create' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Create a task
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if tasks.has_other_pages %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Tasks pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if tasks.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if filter_query %}&{{ filter_query }}{% endif %}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tasks.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;&laquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in tasks.paginator.page_range %}
+                        {% if tasks.number == i %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ i }}</span>
+                            </li>
+                        {% elif i > tasks.number|add:'-3' and i < tasks.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ i }}{% if filter_query %}&{{ filter_query }}{% endif %}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if tasks.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tasks.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tasks.paginator.num_pages }}{% if filter_query %}&{{ filter_query }}{% endif %}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Toast Container for Notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 1050;">
+    <!-- Toasts will be inserted here dynamically -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Auto-submit filters when select fields change
+        $('#status, #priority, #tag').on('change', function() {
+            $('#filterForm').submit();
+        });
+        
+        // Toggle task status
+        $('.toggle-status-btn').on('click', function() {
+            const taskId = $(this).data('task-id');
+            const currentStatus = $(this).data('current-status');
+            const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+            
+            // Send AJAX request to update status
+            $.ajax({
+                url: `/task/api/tasks/${taskId}/`,
+                type: 'PATCH',
+                data: JSON.stringify({
+                    status: newStatus
+                }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    // Show success toast
+                    const statusText = newStatus === 'completed' ? 'completed' : 'marked as pending';
+                    const toast = $(`
+                        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                            <div class="toast-header bg-success text-white">
+                                <strong class="me-auto">Success</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                Task ${response.title} ${statusText} successfully!
+                            </div>
+                        </div>
+                    `);
+                    
+                    $('#toastContainer').append(toast);
+                    const bsToast = new bootstrap.Toast(toast[0]);
+                    bsToast.show();
+                    
+                    // Reload page to reflect changes
+                    location.reload();
+                },
+                error: function() {
+                    // Show error toast
+                    const toast = $(`
+                        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                            <div class="toast-header bg-danger text-white">
+                                <strong class="me-auto">Error</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                Failed to update task status. Please try again.
+                            </div>
+                        </div>
+                    `);
+                    
+                    $('#toastContainer').append(toast);
+                    const bsToast = new bootstrap.Toast(toast[0]);
+                    bsToast.show();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

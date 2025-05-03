@@ -1,0 +1,216 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Image Styling Demo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Image Styling System</h1>
+    <p class="lead mb-5">A showcase of the Material Design 3 based image styling system</p>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Avatar Images</h2>
+            <div class="d-flex align-items-center gap-4 mb-4">
+                <div>
+                    <img src="{% static 'img/default-avatar.png' %}" class="img-avatar img-avatar-xs" alt="Extra Small Avatar">
+                    <p class="text-center mt-2">XS</p>
+                </div>
+                <div>
+                    <img src="{% static 'img/default-avatar.png' %}" class="img-avatar img-avatar-sm" alt="Small Avatar">
+                    <p class="text-center mt-2">SM</p>
+                </div>
+                <div>
+                    <img src="{% static 'img/default-avatar.png' %}" class="img-avatar img-avatar-md" alt="Medium Avatar">
+                    <p class="text-center mt-2">MD</p>
+                </div>
+                <div>
+                    <img src="{% static 'img/default-avatar.png' %}" class="img-avatar img-avatar-lg" alt="Large Avatar">
+                    <p class="text-center mt-2">LG</p>
+                </div>
+                <div>
+                    <img src="{% static 'img/default-avatar.png' %}" class="img-avatar img-avatar-xl" alt="Extra Large Avatar">
+                    <p class="text-center mt-2">XL</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Card Images</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://picsum.photos/id/1015/800/600" class="img-card img-ratio-16-9" alt="Mountain landscape">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">16:9 Ratio Card</h5>
+                            <p class="card-text">Standard card with 16:9 image ratio</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://picsum.photos/id/1019/800/600" class="img-card img-ratio-4-3" alt="Nature landscape">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">4:3 Ratio Card</h5>
+                            <p class="card-text">Standard card with 4:3 image ratio</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://picsum.photos/id/1018/800/800" class="img-card img-ratio-1-1" alt="Square image">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">1:1 Ratio Card</h5>
+                            <p class="card-text">Standard card with square image</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Banner Images</h2>
+            <div class="mb-4">
+                <img src="https://picsum.photos/id/1016/1200/400" class="img-banner" alt="Banner image">
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Hover Effects</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="img-container img-hover">
+                            <img src="https://picsum.photos/id/1024/800/600" class="img-card" alt="Standard hover effect">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Standard Hover</h5>
+                            <p class="card-text">Uses the img-hover class</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="img-container img-hover-zoom">
+                            <img src="https://picsum.photos/id/1035/800/600" class="img-card" alt="Zoom hover effect">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Zoom Hover</h5>
+                            <p class="card-text">Uses the img-hover-zoom class</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="img-container img-hover-darken">
+                            <img src="https://picsum.photos/id/1039/800/600" class="img-card" alt="Darken hover effect">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Darken Hover</h5>
+                            <p class="card-text">Uses the img-hover-darken class</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Caption Effects</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="img-with-caption">
+                        <img src="https://picsum.photos/id/1043/800/600" class="img-card" alt="Standard caption">
+                        <div class="img-caption">Standard caption with fixed position</div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="img-caption-reveal">
+                        <img src="https://picsum.photos/id/1044/800/600" class="img-card" alt="Reveal caption">
+                        <div class="img-caption">Hover to reveal this caption</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Image Grid</h2>
+            <div class="img-grid">
+                <div class="img-container">
+                    <img src="https://picsum.photos/id/1067/600/400" class="img-card" alt="Grid image 1">
+                </div>
+                <div class="img-container">
+                    <img src="https://picsum.photos/id/1068/600/400" class="img-card" alt="Grid image 2">
+                </div>
+                <div class="img-container">
+                    <img src="https://picsum.photos/id/1069/600/400" class="img-card" alt="Grid image 3">
+                </div>
+                <div class="img-container">
+                    <img src="https://picsum.photos/id/1070/600/400" class="img-card" alt="Grid image 4">
+                </div>
+                <div class="img-container">
+                    <img src="https://picsum.photos/id/1071/600/400" class="img-card" alt="Grid image 5">
+                </div>
+                <div class="img-container">
+                    <img src="https://picsum.photos/id/1072/600/400" class="img-card" alt="Grid image 6">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Animation Examples</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://picsum.photos/id/1074/800/600" class="img-card img-fade-in" alt="Fade-in animation">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Fade In</h5>
+                            <p class="card-text">Uses the img-fade-in class</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://picsum.photos/id/1075/800/600" class="img-card img-slide-in-up" alt="Slide-up animation">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">Slide In Up</h5>
+                            <p class="card-text">Uses the img-slide-in-up class</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-3">Responsive Behavior</h2>
+            <p>Resize your browser window to see how images respond to different viewport sizes.</p>
+            <div class="alert alert-info">
+                The image styling system includes responsive breakpoints at 768px and 1200px.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

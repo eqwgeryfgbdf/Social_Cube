@@ -1,0 +1,22 @@
+Bug Tracker Notification
+
+Hello {{ user.first_name|default:user.username }},
+
+{{ title }}
+
+{{ message }}
+
+Bug Details:
+- Bug ID: {{ bug.id }}
+- Status: {{ bug.get_status_display }}
+- Severity: {{ bug.get_severity_display }}
+- Reported by: {{ bug.reporter|default:"Anonymous" }}
+- Date reported: {{ bug.created_at|date:"F j, Y, g:i a" }}
+
+View this bug here: {{ bug_url }}
+
+---
+This email was sent from the Social Cube Bug Tracking System.
+You received this email because you are subscribed to notifications for this bug or you have been mentioned.
+
+Manage your notification settings: {{ settings.BASE_URL }}{% url 'bug_tracking:notification_settings' %}

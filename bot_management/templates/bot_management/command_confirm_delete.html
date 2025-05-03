@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Command - Social Cube{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Confirm Delete Command</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_list' %}">Commands</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_detail' command.id %}">{{ command.name }}</a></li>
+        <li class="breadcrumb-item active">Delete</li>
+    </ol>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Warning: Delete Command
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-4">
+                        <h4 class="alert-heading">Caution!</h4>
+                        <p>You are about to delete the command <strong>/{{ command.name }}</strong> from bot <strong>{{ command.bot.name }}</strong>.</p>
+                        <p class="mb-0">This action cannot be undone and will:</p>
+                        <ul>
+                            <li>Delete the command from your database</li>
+                            <li>Remove the command from Discord</li>
+                            <li>Delete all associated options and logs</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Command Information
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 30%">Name</th>
+                                        <td>{{ command.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description</th>
+                                        <td>{{ command.description }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Bot</th>
+                                        <td>{{ command.bot.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Type</th>
+                                        <td>{{ command.get_type_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Guild</th>
+                                        <td>
+                                            {% if command.guild %}
+                                                {{ command.guild.name }}
+                                            {% else %}
+                                                <span class="text-muted">Global</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Options</th>
+                                        <td>
+                                            {{ command.options.count }} option{{ command.options.count|pluralize }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                I understand that this action cannot be undone.
+                            </label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'command_detail' command.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash me-1"></i> Delete Command
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Enable/disable delete button based on checkbox
+        $('#confirmDelete').change(function() {
+            if ($(this).is(':checked')) {
+                $('#deleteBtn').prop('disabled', false);
+            } else {
+                $('#deleteBtn').prop('disabled', true);
+            }
+        });
+    });
+</script>
+{% endblock %}

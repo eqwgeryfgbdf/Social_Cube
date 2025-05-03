@@ -1,0 +1,415 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}Bug Tracking Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/bug_dashboard.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-screen-2xl">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Sidebar -->
+        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+            <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white border-b pb-2">Bug Filters</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h3>
+                    <div class="space-y-1">
+                        {% for status_key, status_name in status_choices %}
+                            <a href="{% url 'bug_tracking:bug_list' %}?status={{ status_key }}" 
+                               class="flex items-center text-sm py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
+                                <div class="w-2 h-2 rounded-full mr-2 
+                                     {% if status_key == 'new' %}bg-blue-500
+                                     {% elif status_key == 'triaged' %}bg-yellow-500
+                                     {% elif status_key == 'in_progress' %}bg-purple-500
+                                     {% elif status_key == 'fixed' %}bg-green-500
+                                     {% elif status_key == 'verified' %}bg-emerald-600
+                                     {% elif status_key == 'closed' %}bg-gray-500
+                                     {% else %}bg-red-500{% endif %}">
+                                </div>
+                                <span>{{ status_name }}</span>
+                                <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                                    {{ status_data|get_item:status_key|default:'0' }}
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Severity</h3>
+                    <div class="space-y-1">
+                        {% for severity_key, severity_name in severity_choices %}
+                            <a href="{% url 'bug_tracking:bug_list' %}?severity={{ severity_key }}" 
+                               class="flex items-center text-sm py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
+                                <div class="w-2 h-2 rounded-full mr-2 
+                                     {% if severity_key == 'critical' %}bg-red-600
+                                     {% elif severity_key == 'high' %}bg-orange-500
+                                     {% elif severity_key == 'medium' %}bg-yellow-500
+                                     {% elif severity_key == 'low' %}bg-green-500
+                                     {% else %}bg-blue-500{% endif %}">
+                                </div>
+                                <span>{{ severity_name }}</span>
+                                <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                                    {{ severity_data|get_item:severity_key|default:'0' }}
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-medium text-gray-700 dark:text-gray-300 mb-2">My Bugs</h3>
+                    <div class="space-y-1">
+                        <a href="{% url 'bug_tracking:bug_list' %}?assigned_to=me" 
+                           class="flex items-center text-sm py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
+                            <i class="fas fa-user-check mr-2 text-blue-500"></i>
+                            <span>Assigned to me</span>
+                        </a>
+                        <a href="{% url 'bug_tracking:bug_list' %}?reported_by=me" 
+                           class="flex items-center text-sm py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
+                            <i class="fas fa-flag mr-2 text-green-500"></i>
+                            <span>Reported by me</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {% if tag_counts %}
+                <div>
+                    <h3 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in tag_counts %}
+                            <a href="{% url 'bug_tracking:bug_list' %}?tag={{ tag.id }}" 
+                               class="text-xs py-1 px-2 bg-{{ tag.color|default:'blue' }}-100 text-{{ tag.color|default:'blue' }}-800 rounded-full hover:bg-{{ tag.color|default:'blue' }}-200 transition duration-150">
+                                {{ tag.name }} ({{ tag.bug_count }})
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="lg:col-span-9 space-y-6">
+            <!-- Dashboard Header -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Bug Tracking Dashboard</h1>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <a href="{% url 'bug_tracking:bug_create' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                            <i class="fas fa-plus mr-2"></i>
+                            <span>Report Bug</span>
+                        </a>
+                        <a href="{% url 'bug_tracking:bug_list' %}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150">
+                            <i class="fas fa-list mr-2"></i>
+                            <span>All Bugs</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all">
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Bugs</h3>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ total_bugs }}</p>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-gray-600 dark:text-gray-400">All time</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all">
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Open Bugs</h3>
+                    <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ open_bugs }}</p>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-gray-600 dark:text-gray-400">Awaiting action</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all">
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Critical Bugs</h3>
+                    <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ severity_data.critical|default:'0' }}</p>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-gray-600 dark:text-gray-400">Highest priority</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all">
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Fixed Today</h3>
+                    <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ fixed_today|default:'0' }}</p>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-gray-600 dark:text-gray-400">Last 24 hours</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Status Distribution Chart -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Bug Status Distribution</h2>
+                    <div class="h-64">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Severity Distribution Chart -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Bug Severity Distribution</h2>
+                    <div class="h-64">
+                        <canvas id="severityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent and Assigned Bugs -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recent Bugs -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Recent Bugs</h2>
+                        <a href="{% url 'bug_tracking:bug_list' %}" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
+                            View all
+                        </a>
+                    </div>
+                    {% if recent_bugs %}
+                        <div class="space-y-3">
+                            {% for bug in recent_bugs %}
+                                <a href="{% url 'bug_tracking:bug_detail' bug.pk %}" class="block p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition duration-150">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-2 h-2 mt-2 rounded-full 
+                                                {% if bug.status == 'new' %}bg-blue-500
+                                                {% elif bug.status == 'triaged' %}bg-yellow-500
+                                                {% elif bug.status == 'in_progress' %}bg-purple-500
+                                                {% elif bug.status == 'fixed' %}bg-green-500
+                                                {% elif bug.status == 'verified' %}bg-emerald-600
+                                                {% elif bug.status == 'closed' %}bg-gray-500
+                                                {% else %}bg-red-500{% endif %}">
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ bug.title }}</p>
+                                            <div class="mt-1 flex items-center text-xs">
+                                                <span class="text-gray-500 dark:text-gray-400">{{ bug.created_at|date:"M d, Y" }}</span>
+                                                <span class="mx-1 text-gray-500 dark:text-gray-400">•</span>
+                                                <span class="text-gray-500 dark:text-gray-400">
+                                                    {% if bug.reporter %}{{ bug.reporter.username }}{% else %}Anonymous{% endif %}
+                                                </span>
+                                                <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                                    {% if bug.severity == 'critical' %}bg-red-100 text-red-800
+                                                    {% elif bug.severity == 'high' %}bg-orange-100 text-orange-800
+                                                    {% elif bug.severity == 'medium' %}bg-yellow-100 text-yellow-800
+                                                    {% elif bug.severity == 'low' %}bg-green-100 text-green-800
+                                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                                    {{ bug.get_severity_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 dark:text-gray-400 text-center py-4">No recent bugs reported</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Assigned Bugs -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Bugs Assigned to You</h2>
+                        <a href="{% url 'bug_tracking:bug_list' %}?assigned_to=me" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
+                            View all
+                        </a>
+                    </div>
+                    {% if assigned_bugs %}
+                        <div class="space-y-3">
+                            {% for bug in assigned_bugs %}
+                                <a href="{% url 'bug_tracking:bug_detail' bug.pk %}" class="block p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition duration-150">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-2 h-2 mt-2 rounded-full 
+                                                {% if bug.status == 'new' %}bg-blue-500
+                                                {% elif bug.status == 'triaged' %}bg-yellow-500
+                                                {% elif bug.status == 'in_progress' %}bg-purple-500
+                                                {% elif bug.status == 'fixed' %}bg-green-500
+                                                {% elif bug.status == 'verified' %}bg-emerald-600
+                                                {% elif bug.status == 'closed' %}bg-gray-500
+                                                {% else %}bg-red-500{% endif %}">
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ bug.title }}</p>
+                                            <div class="mt-1 flex items-center text-xs">
+                                                <span class="text-gray-500 dark:text-gray-400">{{ bug.created_at|date:"M d, Y" }}</span>
+                                                <span class="mx-1 text-gray-500 dark:text-gray-400">•</span>
+                                                <span class="text-gray-500 dark:text-gray-400">
+                                                    {% if bug.reporter %}{{ bug.reporter.username }}{% else %}Anonymous{% endif %}
+                                                </span>
+                                                <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                                    {% if bug.severity == 'critical' %}bg-red-100 text-red-800
+                                                    {% elif bug.severity == 'high' %}bg-orange-100 text-orange-800
+                                                    {% elif bug.severity == 'medium' %}bg-yellow-100 text-yellow-800
+                                                    {% elif bug.severity == 'low' %}bg-green-100 text-green-800
+                                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                                    {{ bug.get_severity_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 dark:text-gray-400 text-center py-4">No bugs assigned to you</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Age Distribution -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Open Bug Age Distribution</h2>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ age_data.today }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Today</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ age_data.this_week }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">This Week</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ age_data.this_month }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">This Month</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ age_data.older }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Older</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusData = {{ status_data|safe }};
+        const statusLabels = [];
+        const statusValues = [];
+        const statusColors = [];
+        
+        {% for status_key, status_name in status_choices %}
+            if (statusData.hasOwnProperty('{{ status_key }}')) {
+                statusLabels.push('{{ status_name }}');
+                statusValues.push(statusData['{{ status_key }}']);
+                
+                {% if status_key == 'new' %}
+                    statusColors.push('#3B82F6'); // blue-500
+                {% elif status_key == 'triaged' %}
+                    statusColors.push('#EAB308'); // yellow-500
+                {% elif status_key == 'in_progress' %}
+                    statusColors.push('#A855F7'); // purple-500
+                {% elif status_key == 'fixed' %}
+                    statusColors.push('#22C55E'); // green-500
+                {% elif status_key == 'verified' %}
+                    statusColors.push('#059669'); // emerald-600
+                {% elif status_key == 'closed' %}
+                    statusColors.push('#6B7280'); // gray-500
+                {% else %}
+                    statusColors.push('#EF4444'); // red-500
+                {% endif %}
+            }
+        {% endfor %}
+        
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusValues,
+                    backgroundColor: statusColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 10,
+                            padding: 15,
+                            color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#4b5563'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Severity Chart
+        const severityCtx = document.getElementById('severityChart').getContext('2d');
+        const severityData = {{ severity_data|safe }};
+        const severityLabels = [];
+        const severityValues = [];
+        const severityColors = [];
+        
+        {% for severity_key, severity_name in severity_choices %}
+            if (severityData.hasOwnProperty('{{ severity_key }}')) {
+                severityLabels.push('{{ severity_name }}');
+                severityValues.push(severityData['{{ severity_key }}']);
+                
+                {% if severity_key == 'critical' %}
+                    severityColors.push('#DC2626'); // red-600
+                {% elif severity_key == 'high' %}
+                    severityColors.push('#F97316'); // orange-500
+                {% elif severity_key == 'medium' %}
+                    severityColors.push('#EAB308'); // yellow-500
+                {% elif severity_key == 'low' %}
+                    severityColors.push('#22C55E'); // green-500
+                {% else %}
+                    severityColors.push('#3B82F6'); // blue-500
+                {% endif %}
+            }
+        {% endfor %}
+        
+        new Chart(severityCtx, {
+            type: 'pie',
+            data: {
+                labels: severityLabels,
+                datasets: [{
+                    data: severityValues,
+                    backgroundColor: severityColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 10,
+                            padding: 15,
+                            color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#4b5563'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

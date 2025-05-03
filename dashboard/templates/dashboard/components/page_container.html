@@ -1,0 +1,23 @@
+{% comment %}
+/**
+ * Page Container Component
+ * 
+ * A standardized page container for consistent layout and spacing.
+ * 
+ * Usage:
+ * {% include "dashboard/components/page_container.html" with title="Page Title" %}
+ *   Page content goes here
+ * {% endinclude %}
+ * 
+ * Parameters:
+ * - title: The title of the page (optional)
+ */
+{% endcomment %}
+
+<div class="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+  {% if title %}
+  <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+  {% endif %}
+  
+  {{ content }}
+</div>

@@ -1,0 +1,526 @@
+{% extends "dashboard/new_base.html" %}
+{% load static %}
+
+{% block title %}WebSocket Test{% endblock %}
+
+{% block content %}
+<!-- 
+  Standardized Layout Classes:
+  - Page container: flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8
+  - Card container: bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6
+  - Section header: text-xl font-semibold mb-4
+  - Form groups: space-y-4 (vertical) or flex flex-wrap items-center gap-2 (horizontal)
+  - Scrollable content: h-[height] overflow-y-auto rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4
+-->
+<div class="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+    <h1 class="text-2xl font-bold mb-6">WebSocket Connection Test</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Bot Status Updates -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 md:mb-0">
+            <h2 class="text-xl font-semibold mb-4">Bot Status Updates</h2>
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <button id="connect-bot-status" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Connect
+                </button>
+                <button id="disconnect-bot-status" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Disconnect
+                </button>
+            </div>
+            <div class="h-64 overflow-y-auto rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4" id="bot-status-log">
+                <div class="text-gray-500">Waiting for connection...</div>
+            </div>
+        </div>
+        
+        <!-- Guild Activity -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 md:mb-0">
+            <h2 class="text-xl font-semibold mb-4">Guild Activity</h2>
+            <div class="mb-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="bot-id" class="px-4 py-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded">
+                        <option value="all">All Bots</option>
+                        {% for bot in bots %}
+                            <option value="{{ bot.id }}">{{ bot.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="guild-id" class="px-4 py-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded">
+                        <option value="all">All Guilds</option>
+                    </select>
+                    <button id="connect-guild-activity" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Connect
+                    </button>
+                    <button id="disconnect-guild-activity" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                        Disconnect
+                    </button>
+                </div>
+            </div>
+            <div class="h-64 overflow-y-auto rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4" id="guild-activity-log">
+                <div class="text-gray-500">Waiting for connection...</div>
+            </div>
+        </div>
+        
+        <!-- Command Logs -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 md:mb-0">
+            <h2 class="text-xl font-semibold mb-4">Command Logs</h2>
+            <div class="mb-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="cmd-bot-id" class="px-4 py-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded">
+                        <option value="all">All Bots</option>
+                        {% for bot in bots %}
+                            <option value="{{ bot.id }}">{{ bot.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button id="connect-command-logs" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Connect
+                    </button>
+                    <button id="disconnect-command-logs" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                        Disconnect
+                    </button>
+                </div>
+            </div>
+            <div class="h-64 overflow-y-auto rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4" id="command-logs-log">
+                <div class="text-gray-500">Waiting for connection...</div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Activity -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 md:mb-0">
+            <h2 class="text-xl font-semibold mb-4">Dashboard Activity</h2>
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <button id="connect-dashboard-activity" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Connect
+                </button>
+                <button id="disconnect-dashboard-activity" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Disconnect
+                </button>
+            </div>
+            <div class="h-64 overflow-y-auto rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4" id="dashboard-activity-log">
+                <div class="text-gray-500">Waiting for connection...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Simulation Controls -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Simulate Events</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <h3 class="font-semibold mb-2">Bot Status</h3>
+                <div class="flex flex-wrap gap-2">
+                    <select id="sim-bot-id" class="px-4 py-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded">
+                        {% for bot in bots %}
+                            <option value="{{ bot.id }}">{{ bot.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button id="sim-bot-online" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                        Online
+                    </button>
+                    <button id="sim-bot-offline" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                        Offline
+                    </button>
+                    <button id="sim-bot-error" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                        Error
+                    </button>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="font-semibold mb-2">Guild Activity</h3>
+                <div class="flex flex-wrap gap-2">
+                    <select id="sim-guild-bot-id" class="px-4 py-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded">
+                        {% for bot in bots %}
+                            <option value="{{ bot.id }}">{{ bot.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button id="sim-guild-add" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Add Guild
+                    </button>
+                    <button id="sim-guild-remove" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                        Remove Guild
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Utility functions
+    function appendToLog(elementId, message, isError = false) {
+        const logElement = document.getElementById(elementId);
+        
+        // Create a new log entry
+        const logEntry = document.createElement('div');
+        logEntry.className = isError ? 'text-red-500 mb-1' : 'text-gray-700 dark:text-gray-300 mb-1';
+        
+        // Add timestamp
+        const timestamp = new Date().toLocaleTimeString();
+        const timestampSpan = document.createElement('span');
+        timestampSpan.className = 'text-gray-500 dark:text-gray-400 inline-block w-20';
+        timestampSpan.textContent = timestamp;
+        
+        // Add message and append to log
+        logEntry.appendChild(timestampSpan);
+        logEntry.appendChild(document.createTextNode(message));
+        
+        // Clear "waiting for connection" message if it exists
+        const waitingMessage = logElement.querySelector('.text-gray-500');
+        if (waitingMessage && waitingMessage.textContent === 'Waiting for connection...') {
+            logElement.innerHTML = '';
+        }
+        
+        // Append the log entry
+        logElement.appendChild(logEntry);
+        
+        // Scroll to bottom
+        logElement.scrollTop = logElement.scrollHeight;
+    }
+    
+    function formatJSON(data) {
+        try {
+            if (typeof data === 'object') {
+                return JSON.stringify(data, null, 2);
+            } else if (typeof data === 'string') {
+                return JSON.stringify(JSON.parse(data), null, 2);
+            }
+            return data;
+        } catch (e) {
+            return data;
+        }
+    }
+    
+    // WebSocket Connection Management
+    let botStatusSocket = null;
+    let guildActivitySocket = null;
+    let commandLogsSocket = null;
+    let dashboardActivitySocket = null;
+    
+    // Bot Status WebSocket
+    document.getElementById('connect-bot-status').addEventListener('click', function() {
+        if (botStatusSocket) {
+            appendToLog('bot-status-log', 'Already connected', true);
+            return;
+        }
+        
+        appendToLog('bot-status-log', 'Connecting to bot status WebSocket...');
+        
+        botStatusSocket = new WebSocket(
+            (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + 
+            window.location.host + 
+            '/ws/bot_status/'
+        );
+        
+        botStatusSocket.onopen = function(e) {
+            appendToLog('bot-status-log', 'Connected successfully');
+        };
+        
+        botStatusSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            appendToLog('bot-status-log', `Bot #${data.bot_id} is ${data.status}: ${data.message}`);
+        };
+        
+        botStatusSocket.onclose = function(e) {
+            appendToLog('bot-status-log', 'Connection closed');
+            botStatusSocket = null;
+        };
+        
+        botStatusSocket.onerror = function(e) {
+            appendToLog('bot-status-log', 'Error: ' + e.message, true);
+        };
+    });
+    
+    document.getElementById('disconnect-bot-status').addEventListener('click', function() {
+        if (botStatusSocket) {
+            botStatusSocket.close();
+            botStatusSocket = null;
+            appendToLog('bot-status-log', 'Disconnected');
+        } else {
+            appendToLog('bot-status-log', 'Not connected', true);
+        }
+    });
+    
+    // Guild Activity WebSocket
+    document.getElementById('connect-guild-activity').addEventListener('click', function() {
+        if (guildActivitySocket) {
+            appendToLog('guild-activity-log', 'Already connected', true);
+            return;
+        }
+        
+        const botId = document.getElementById('bot-id').value;
+        const guildId = document.getElementById('guild-id').value;
+        let wsUrl = '/ws/guild_activity/';
+        
+        if (botId !== 'all') {
+            wsUrl += botId + '/';
+            if (guildId !== 'all') {
+                wsUrl += guildId + '/';
+            }
+        } else {
+            wsUrl += 'all/';
+        }
+        
+        appendToLog('guild-activity-log', `Connecting to ${wsUrl}...`);
+        
+        guildActivitySocket = new WebSocket(
+            (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + 
+            window.location.host + 
+            wsUrl
+        );
+        
+        guildActivitySocket.onopen = function(e) {
+            appendToLog('guild-activity-log', 'Connected successfully');
+        };
+        
+        guildActivitySocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            appendToLog('guild-activity-log', `Bot #${data.bot_id}, Guild ${data.guild_id}: ${data.event_type}`);
+        };
+        
+        guildActivitySocket.onclose = function(e) {
+            appendToLog('guild-activity-log', 'Connection closed');
+            guildActivitySocket = null;
+        };
+        
+        guildActivitySocket.onerror = function(e) {
+            appendToLog('guild-activity-log', 'Error: ' + e.message, true);
+        };
+    });
+    
+    document.getElementById('disconnect-guild-activity').addEventListener('click', function() {
+        if (guildActivitySocket) {
+            guildActivitySocket.close();
+            guildActivitySocket = null;
+            appendToLog('guild-activity-log', 'Disconnected');
+        } else {
+            appendToLog('guild-activity-log', 'Not connected', true);
+        }
+    });
+    
+    // Command Logs WebSocket
+    document.getElementById('connect-command-logs').addEventListener('click', function() {
+        if (commandLogsSocket) {
+            appendToLog('command-logs-log', 'Already connected', true);
+            return;
+        }
+        
+        const botId = document.getElementById('cmd-bot-id').value;
+        let wsUrl = '/ws/command_logs/';
+        
+        if (botId !== 'all') {
+            wsUrl += botId + '/';
+        } else {
+            wsUrl += 'all/';
+        }
+        
+        appendToLog('command-logs-log', `Connecting to ${wsUrl}...`);
+        
+        commandLogsSocket = new WebSocket(
+            (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + 
+            window.location.host + 
+            wsUrl
+        );
+        
+        commandLogsSocket.onopen = function(e) {
+            appendToLog('command-logs-log', 'Connected successfully');
+        };
+        
+        commandLogsSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            appendToLog('command-logs-log', `Command ${data.command_name} (ID: ${data.command_id}) executed by ${data.user_id}: ${data.status}`);
+        };
+        
+        commandLogsSocket.onclose = function(e) {
+            appendToLog('command-logs-log', 'Connection closed');
+            commandLogsSocket = null;
+        };
+        
+        commandLogsSocket.onerror = function(e) {
+            appendToLog('command-logs-log', 'Error: ' + e.message, true);
+        };
+    });
+    
+    document.getElementById('disconnect-command-logs').addEventListener('click', function() {
+        if (commandLogsSocket) {
+            commandLogsSocket.close();
+            commandLogsSocket = null;
+            appendToLog('command-logs-log', 'Disconnected');
+        } else {
+            appendToLog('command-logs-log', 'Not connected', true);
+        }
+    });
+    
+    // Dashboard Activity WebSocket
+    document.getElementById('connect-dashboard-activity').addEventListener('click', function() {
+        if (dashboardActivitySocket) {
+            appendToLog('dashboard-activity-log', 'Already connected', true);
+            return;
+        }
+        
+        appendToLog('dashboard-activity-log', 'Connecting to dashboard activity WebSocket...');
+        
+        dashboardActivitySocket = new WebSocket(
+            (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + 
+            window.location.host + 
+            '/ws/dashboard_activity/'
+        );
+        
+        dashboardActivitySocket.onopen = function(e) {
+            appendToLog('dashboard-activity-log', 'Connected successfully');
+        };
+        
+        dashboardActivitySocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            appendToLog('dashboard-activity-log', `Activity: ${data.activity_type}`);
+        };
+        
+        dashboardActivitySocket.onclose = function(e) {
+            appendToLog('dashboard-activity-log', 'Connection closed');
+            dashboardActivitySocket = null;
+        };
+        
+        dashboardActivitySocket.onerror = function(e) {
+            appendToLog('dashboard-activity-log', 'Error: ' + e.message, true);
+        };
+    });
+    
+    document.getElementById('disconnect-dashboard-activity').addEventListener('click', function() {
+        if (dashboardActivitySocket) {
+            dashboardActivitySocket.close();
+            dashboardActivitySocket = null;
+            appendToLog('dashboard-activity-log', 'Disconnected');
+        } else {
+            appendToLog('dashboard-activity-log', 'Not connected', true);
+        }
+    });
+    
+    // Simulation controls
+    document.getElementById('sim-bot-online').addEventListener('click', function() {
+        const botId = document.getElementById('sim-bot-id').value;
+        fetch('/api/simulate/bot-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                bot_id: botId,
+                status: 'online',
+                message: 'Bot is now online (simulated)'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Successfully simulated bot online event');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+    
+    document.getElementById('sim-bot-offline').addEventListener('click', function() {
+        const botId = document.getElementById('sim-bot-id').value;
+        fetch('/api/simulate/bot-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                bot_id: botId,
+                status: 'offline',
+                message: 'Bot is now offline (simulated)'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Successfully simulated bot offline event');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+    
+    document.getElementById('sim-bot-error').addEventListener('click', function() {
+        const botId = document.getElementById('sim-bot-id').value;
+        fetch('/api/simulate/bot-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                bot_id: botId,
+                status: 'error',
+                message: 'Bot encountered an error (simulated)'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Successfully simulated bot error event');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+    
+    document.getElementById('sim-guild-add').addEventListener('click', function() {
+        const botId = document.getElementById('sim-guild-bot-id').value;
+        fetch('/api/simulate/guild-activity/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                bot_id: botId,
+                guild_id: 'simulated_' + Math.floor(Math.random() * 1000000),
+                event_type: 'guild_added',
+                data: {
+                    name: 'Simulated Guild',
+                    member_count: Math.floor(Math.random() * 1000)
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Successfully simulated guild add event');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+    
+    document.getElementById('sim-guild-remove').addEventListener('click', function() {
+        const botId = document.getElementById('sim-guild-bot-id').value;
+        fetch('/api/simulate/guild-activity/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                bot_id: botId,
+                guild_id: 'simulated_' + Math.floor(Math.random() * 1000000),
+                event_type: 'guild_removed',
+                data: {
+                    name: 'Simulated Guild'
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Successfully simulated guild remove event');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+</script>
+{% endblock %}

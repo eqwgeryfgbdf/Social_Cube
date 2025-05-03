@@ -1,0 +1,250 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}伺服器 - Social Cube{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">儀表板</a></li>
+<li class="breadcrumb-item active">伺服器</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-server me-1"></i>
+                管理伺服器
+            </div>
+            <div>
+                <form action="{% url 'sync_all_guilds' selected_bot.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-light btn-sm" onclick="return confirm('是否與 Discord 同步所有伺服器?')">
+                        <i class="bi bi-arrow-repeat me-1"></i> 全部同步
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <form method="get" class="d-flex">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="搜尋伺服器..." 
+                                   name="q" value="{{ search_query|default:'' }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <select name="bot_id" class="form-select ms-2" style="max-width: 200px;" onchange="this.form.submit()">
+                            <option value="">選擇機器人</option>
+                            {% for bot_option in user_bots %}
+                                <option value="{{ bot_option.id }}" {% if selected_bot.id == bot_option.id %}selected{% endif %}>
+                                    {{ bot_option.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <select name="sort" class="form-select ms-2" style="max-width: 200px;" onchange="this.form.submit()">
+                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>依名稱排序</option>
+                            <option value="member_count" {% if sort_by == 'member_count' %}selected{% endif %}>依成員數排序</option>
+                            <option value="joined" {% if sort_by == 'joined' %}selected{% endif %}>依加入日期排序</option>
+                        </select>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group" role="group">
+                        <a href="?status=available{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}" class="btn btn-outline-success {% if status == 'available' %}active{% endif %}">可用</a>
+                        <a href="?status=unavailable{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}" class="btn btn-outline-secondary {% if status == 'unavailable' %}active{% endif %}">不可用</a>
+                        <a href="?{% if selected_bot %}bot_id={{ selected_bot.id }}{% endif %}" class="btn btn-outline-primary {% if not status %}active{% endif %}">全部</a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if page_obj %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                    {% for guild in page_obj %}
+                        <div class="col">
+                            <div class="card h-100 {% if not guild.is_available %}border-danger{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0 text-truncate">
+                                        {{ guild.name }}
+                                    </h5>
+                                    {% if guild.is_available %}
+                                        <span class="badge bg-success">可用</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">不可用</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex mb-3">
+                                        <div class="me-3">
+                                            {% if guild.icon_url %}
+                                                <img src="{{ guild.icon_url }}" alt="{{ guild.name }}" class="rounded-circle" width="64" height="64">
+                                            {% else %}
+                                                <div class="rounded-circle bg-light d-flex justify-content-center align-items-center" style="width: 64px; height: 64px;">
+                                                    <i class="bi bi-discord fs-3 text-primary"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <p class="mb-1"><i class="bi bi-people me-1"></i> {{ guild.member_count }} 成員</p>
+                                            <p class="mb-1"><i class="bi bi-hash me-1"></i> {{ guild.text_channel_count }} 文字頻道</p>
+                                            <p class="mb-1"><i class="bi bi-mic me-1"></i> {{ guild.voice_channel_count }} 語音頻道</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if guild.description %}
+                                        <p class="card-text">{{ guild.description|truncatechars:100 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'guild_detail' guild.id %}" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-eye me-1"></i> 查看詳情
+                                        </a>
+                                        <div class="d-flex">
+                                            <a href="{% url 'guild_channels' guild.id %}" class="btn btn-outline-secondary btn-sm flex-grow-1 me-1" title="頻道">
+                                                <i class="bi bi-hash"></i>
+                                            </a>
+                                            <a href="{% url 'guild_commands' guild.id %}" class="btn btn-outline-secondary btn-sm flex-grow-1 me-1" title="指令">
+                                                <i class="bi bi-terminal"></i>
+                                            </a>
+                                            <a href="{% url 'guild_settings' guild.id %}" class="btn btn-outline-secondary btn-sm flex-grow-1 me-1" title="設定">
+                                                <i class="bi bi-gear"></i>
+                                            </a>
+                                            <form action="{% url 'sync_guild' guild.id %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-success btn-sm" title="同步" 
+                                                   onclick="return confirm('是否與 Discord 同步此伺服器?')">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_bot %}&bot_id={{ selected_bot.id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    {% if search_query or status %}
+                        <h5>沒有符合搜尋條件的伺服器</h5>
+                        <p>嘗試調整過濾條件或<a href="{% url 'guild_list' %}{% if selected_bot %}?bot_id={{ selected_bot.id }}{% endif %}" class="alert-link">查看所有伺服器</a>。</p>
+                    {% else %}
+                        <h5>找不到伺服器</h5>
+                        <p>此機器人目前未加入任何 Discord 伺服器。邀請機器人加入伺服器來開始使用。</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <h3 class="display-4 mb-1">{{ total_guilds }}</h3>
+                    <p class="mb-0 text-muted">總伺服器數</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <h3 class="display-4 mb-1">{{ active_guilds }}</h3>
+                    <p class="mb-0 text-muted">可用伺服器</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <h3 class="display-4 mb-1">{{ total_members }}</h3>
+                    <p class="mb-0 text-muted">總成員數</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tooltips initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

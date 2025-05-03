@@ -1,0 +1,126 @@
+{% extends "dashboard/new_base.html" %}
+{% load static %}
+
+{% block title %}Request Log Detail{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'logging_system:dashboard' %}">Logging System</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'logging_system:request_log_list' %}">Request Logs</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Detail</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h1 class="mb-4">Request Log Detail</h1>
+  
+  <!-- Request Info -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Basic Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Timestamp:</div>
+            <div class="col-md-8">{{ log.timestamp }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Method:</div>
+            <div class="col-md-8">
+              <span class="badge bg-secondary">{{ log.method }}</span>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Path:</div>
+            <div class="col-md-8">{{ log.path }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Status Code:</div>
+            <div class="col-md-8">
+              <span class="badge {% if log.status_code < 300 %}bg-success{% elif log.status_code < 400 %}bg-info{% elif log.status_code < 500 %}bg-warning{% else %}bg-danger{% endif %}">
+                {{ log.status_code }}
+              </span>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Duration:</div>
+            <div class="col-md-8">{{ log.duration|floatformat:3 }} seconds</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">User Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">User:</div>
+            <div class="col-md-8">{{ log.user|default:"Anonymous" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">IP Address:</div>
+            <div class="col-md-8">{{ log.ip_address|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">User Agent:</div>
+            <div class="col-md-8">{{ log.user_agent|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Response Size:</div>
+            <div class="col-md-8">{{ log.response_size|filesizeformat }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Request Details -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Query Parameters</h5>
+        </div>
+        <div class="card-body">
+          {% if log.query_params %}
+            <pre class="rounded bg-light p-3 mb-0"><code>{{ log.query_params|pprint }}</code></pre>
+          {% else %}
+            <p class="text-muted mb-0">No query parameters</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Request Body</h5>
+        </div>
+        <div class="card-body">
+          {% if log.request_body %}
+            <pre class="rounded bg-light p-3 mb-0"><code>{{ log.request_body|pprint }}</code></pre>
+          {% else %}
+            <p class="text-muted mb-0">No request body</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Actions -->
+  <div class="mb-4">
+    <a href="{% url 'logging_system:request_log_list' %}" class="btn btn-primary">
+      <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+  </div>
+</div>
+{% endblock %}

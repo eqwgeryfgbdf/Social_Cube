@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.id %}Edit Option{% else %}Add Option{% endif %} - Social Cube{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{% if form.instance.id %}Edit Option: {{ form.instance.name }}{% else %}Add Command Option{% endif %}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_list' %}">Commands</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_detail' command.id %}">{{ command.name }}</a></li>
+        <li class="breadcrumb-item active">{% if form.instance.id %}Edit Option{% else %}Add Option{% endif %}</li>
+    </ol>
+    
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-puzzle-piece me-1"></i>
+                    Option Information
+                </div>
+                <div class="card-body">
+                    <form method="post" id="optionForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <h4 class="alert-heading">Please correct the following errors:</h4>
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <h4 class="alert-heading">Form Error:</h4>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Hidden command field -->
+                        {{ form.command.as_hidden }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                                    {{ form.name }}
+                                    {% if form.name.help_text %}
+                                        <div class="form-text text-muted">{{ form.name.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.type.id_for_label }}" class="form-label">{{ form.type.label }}</label>
+                                    {{ form.type }}
+                                    {% if form.type.help_text %}
+                                        <div class="form-text text-muted">{{ form.type.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.help_text %}
+                                <div class="form-text text-muted">{{ form.description.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.parent.id_for_label }}" class="form-label">{{ form.parent.label }}</label>
+                                    {{ form.parent }}
+                                    {% if form.parent.help_text %}
+                                        <div class="form-text text-muted">{{ form.parent.help_text }}</div>
+                                    {% else %}
+                                        <div class="form-text text-muted">Parent option (for nested options). Only SUB_COMMAND and SUB_COMMAND_GROUP can be parents.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.position.id_for_label }}" class="form-label">{{ form.position.label }}</label>
+                                    {{ form.position }}
+                                    {% if form.position.help_text %}
+                                        <div class="form-text text-muted">{{ form.position.help_text }}</div>
+                                    {% else %}
+                                        <div class="form-text text-muted">Order of this option in the command (0 is first).</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            {{ form.required }}
+                            <label class="form-check-label" for="{{ form.required.id_for_label }}">{{ form.required.label }}</label>
+                            {% if form.required.help_text %}
+                                <div class="form-text text-muted">{{ form.required.help_text }}</div>
+                            {% else %}
+                                <div class="form-text text-muted">If checked, users must provide a value for this option.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Type-specific fields that show/hide based on option type -->
+                        <div id="string-integer-number-options" class="option-type-fields mb-3">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <i class="fas fa-list me-1"></i> Choices
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="{{ form.choices_json.id_for_label }}" class="form-label">{{ form.choices_json.label }}</label>
+                                        {{ form.choices_json }}
+                                        {% if form.choices_json.help_text %}
+                                            <div class="form-text text-muted">{{ form.choices_json.help_text }}</div>
+                                        {% else %}
+                                            <div class="form-text text-muted">JSON array of choices. Format: [{"name": "Option 1", "value": "option1"}, {"name": "Option 2", "value": "option2"}]</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="integer-number-options" class="option-type-fields mb-3">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <i class="fas fa-sort-numeric-down me-1"></i> Value Range
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="{{ form.min_value.id_for_label }}" class="form-label">{{ form.min_value.label }}</label>
+                                                {{ form.min_value }}
+                                                {% if form.min_value.help_text %}
+                                                    <div class="form-text text-muted">{{ form.min_value.help_text }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="{{ form.max_value.id_for_label }}" class="form-label">{{ form.max_value.label }}</label>
+                                                {{ form.max_value }}
+                                                {% if form.max_value.help_text %}
+                                                    <div class="form-text text-muted">{{ form.max_value.help_text }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="channel-options" class="option-type-fields mb-3">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <i class="fas fa-hashtag me-1"></i> Channel Types
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="{{ form.channel_types.id_for_label }}" class="form-label">{{ form.channel_types.label }}</label>
+                                        {{ form.channel_types }}
+                                        {% if form.channel_types.help_text %}
+                                            <div class="form-text text-muted">{{ form.channel_types.help_text }}</div>
+                                        {% else %}
+                                            <div class="form-text text-muted">Select which types of channels users can choose (hold Ctrl/Cmd to select multiple).</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a href="{% url 'command_detail' command.id %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> {% if form.instance.id %}Update{% else %}Add{% endif %} Option
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Option Help
+                </div>
+                <div class="card-body">
+                    <h5>Command Option Types</h5>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item">
+                            <strong>SUB_COMMAND</strong> - A sub-command (e.g., /command sub-command)
+                        </li>
+                        <li class="list-group-item">
+                            <strong>SUB_COMMAND_GROUP</strong> - A group containing sub-commands
+                        </li>
+                        <li class="list-group-item">
+                            <strong>STRING</strong> - Text input (can have choices)
+                        </li>
+                        <li class="list-group-item">
+                            <strong>INTEGER</strong> - Whole number (can have min/max/choices)
+                        </li>
+                        <li class="list-group-item">
+                            <strong>NUMBER</strong> - Decimal number (can have min/max/choices)
+                        </li>
+                        <li class="list-group-item">
+                            <strong>BOOLEAN</strong> - True/false value
+                        </li>
+                        <li class="list-group-item">
+                            <strong>USER</strong> - Discord user reference
+                        </li>
+                        <li class="list-group-item">
+                            <strong>CHANNEL</strong> - Discord channel reference (can filter types)
+                        </li>
+                        <li class="list-group-item">
+                            <strong>ROLE</strong> - Discord role reference
+                        </li>
+                        <li class="list-group-item">
+                            <strong>MENTIONABLE</strong> - User, role or channel mention
+                        </li>
+                        <li class="list-group-item">
+                            <strong>ATTACHMENT</strong> - File attachment
+                        </li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb me-1"></i> Tips</h6>
+                        <ul class="mb-0">
+                            <li>Option names must be lowercase, 1-32 characters, and containing only letters, numbers, hyphens and underscores.</li>
+                            <li>Options can be required or optional.</li>
+                            <li>STRING, INTEGER, and NUMBER options can have predefined choices.</li>
+                            <li>INTEGER and NUMBER options can have min/max values.</li>
+                            <li>CHANNEL options can be filtered by channel type.</li>
+                            <li>SUB_COMMAND and SUB_COMMAND_GROUP types can have child options.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('{{ form.type.id_for_label }}');
+        const stringIntNumOptions = document.getElementById('string-integer-number-options');
+        const intNumOptions = document.getElementById('integer-number-options');
+        const channelOptions = document.getElementById('channel-options');
+        
+        function updateVisibleOptions() {
+            // Get the selected option type
+            const selectedType = parseInt(typeSelect.value);
+            
+            // Hide all type-specific options first
+            stringIntNumOptions.style.display = 'none';
+            intNumOptions.style.display = 'none';
+            channelOptions.style.display = 'none';
+            
+            // Show relevant options based on type
+            if ([3, 4, 10].includes(selectedType)) {
+                // STRING (3), INTEGER (4), NUMBER (10)
+                stringIntNumOptions.style.display = 'block';
+            }
+            
+            if ([4, 10].includes(selectedType)) {
+                // INTEGER (4), NUMBER (10)
+                intNumOptions.style.display = 'block';
+            }
+            
+            if (selectedType === 7) {
+                // CHANNEL (7)
+                channelOptions.style.display = 'block';
+            }
+        }
+        
+        // Update visible options when the type changes
+        typeSelect.addEventListener('change', updateVisibleOptions);
+        
+        // Initialize visible options based on current selection
+        updateVisibleOptions();
+    });
+</script>
+{% endblock %}

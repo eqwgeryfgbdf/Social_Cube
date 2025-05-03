@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.id %}Edit Command{% else %}Create Command{% endif %} - Social Cube{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{% if form.instance.id %}Edit Command: {{ form.instance.name }}{% else %}Create New Command{% endif %}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'command_list' %}">Commands</a></li>
+        <li class="breadcrumb-item active">{% if form.instance.id %}Edit{% else %}Create{% endif %} Command</li>
+    </ol>
+    
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-edit me-1"></i>
+                    Command Information
+                </div>
+                <div class="card-body">
+                    <form method="post" id="commandForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <h4 class="alert-heading">Please correct the following errors:</h4>
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <h4 class="alert-heading">Form Error:</h4>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                                    {{ form.name }}
+                                    {% if form.name.help_text %}
+                                        <div class="form-text text-muted">{{ form.name.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.type.id_for_label }}" class="form-label">{{ form.type.label }}</label>
+                                    {{ form.type }}
+                                    {% if form.type.help_text %}
+                                        <div class="form-text text-muted">{{ form.type.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.help_text %}
+                                <div class="form-text text-muted">{{ form.description.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.bot.id_for_label }}" class="form-label">{{ form.bot.label }}</label>
+                                    {{ form.bot }}
+                                    {% if form.bot.help_text %}
+                                        <div class="form-text text-muted">{{ form.bot.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.guild.id_for_label }}" class="form-label">{{ form.guild.label }}</label>
+                                    {{ form.guild }}
+                                    {% if form.guild.help_text %}
+                                        <div class="form-text text-muted">{{ form.guild.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="{{ form.default_member_permissions.id_for_label }}" class="form-label">{{ form.default_member_permissions.label }}</label>
+                                    {{ form.default_member_permissions }}
+                                    {% if form.default_member_permissions.help_text %}
+                                        <div class="form-text text-muted">{{ form.default_member_permissions.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                                    {% if form.is_active.help_text %}
+                                        <div class="form-text text-muted">{{ form.is_active.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ form.is_dm_enabled }}
+                                    <label class="form-check-label" for="{{ form.is_dm_enabled.id_for_label }}">{{ form.is_dm_enabled.label }}</label>
+                                    {% if form.is_dm_enabled.help_text %}
+                                        <div class="form-text text-muted">{{ form.is_dm_enabled.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ form.is_nsfw }}
+                                    <label class="form-check-label" for="{{ form.is_nsfw.id_for_label }}">{{ form.is_nsfw.label }}</label>
+                                    {% if form.is_nsfw.help_text %}
+                                        <div class="form-text text-muted">{{ form.is_nsfw.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if form.instance.id %}
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="{{ form.command_data.id_for_label }}" class="form-label">{{ form.command_data.label }}</label>
+                                        {{ form.command_data }}
+                                        {% if form.command_data.help_text %}
+                                            <div class="form-text text-muted">{{ form.command_data.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a href="{% url 'command_list' %}" class="btn btn-secondary">Cancel</a>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> {% if form.instance.id %}Update{% else %}Create{% endif %} Command
+                                </button>
+                                {% if form.instance.id %}
+                                    <button type="submit" class="btn btn-success ms-2" name="save_and_sync" value="1">
+                                        <i class="fas fa-sync me-1"></i> Save & Sync
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Command Help
+                </div>
+                <div class="card-body">
+                    <h5>Creating Discord Commands</h5>
+                    <p>Discord slash commands allow users to interact with your bot using the <code>/</code> prefix in Discord.</p>
+                    
+                    <h6>Command Types</h6>
+                    <ul>
+                        <li><strong>CHAT_INPUT</strong> - Standard slash command with parameters</li>
+                        <li><strong>USER</strong> - Command that appears in user context menus</li>
+                        <li><strong>MESSAGE</strong> - Command that appears in message context menus</li>
+                    </ul>
+                    
+                    <h6>Naming Rules</h6>
+                    <ul>
+                        <li>Names must be between 1-32 characters</li>
+                        <li>Must match <code>^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$</code></li>
+                        <li>Lowercase for <code>CHAT_INPUT</code> commands</li>
+                    </ul>
+                    
+                    <h6>Permissions</h6>
+                    <p>Default member permissions define which users can use the command based on their Discord permissions.</p>
+                    <p>Enter a number representing the sum of all permission flags. <a href="https://discord.com/developers/docs/topics/permissions" target="_blank">Learn more</a></p>
+                    
+                    <h6>Guild vs Global</h6>
+                    <p>Guild commands are specific to a single server and update instantly.</p>
+                    <p>Global commands work in all servers but take up to an hour to update.</p>
+                    
+                    <div class="alert alert-info mt-3">
+                        <h6 class="mb-0"><i class="fas fa-lightbulb me-1"></i> Tip</h6>
+                        <p class="mb-0">After creating a command, add options to make it interactive and collect user input.</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if form.instance.id %}
+                <!-- Command Preview -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fab fa-discord me-1"></i>
+                        Discord Preview
+                    </div>
+                    <div class="card-body">
+                        <div class="discord-preview p-3 bg-dark text-light rounded">
+                            <div class="discord-command-name mb-2">
+                                <span class="text-primary fw-bold">/{{ form.instance.name }}</span>
+                                {% if form.instance.description %}
+                                    <span class="text-muted ms-2">{{ form.instance.description }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if options %}
+                                <div class="discord-options mt-3">
+                                    {% for option in options %}
+                                        <div class="discord-option mb-2">
+                                            <span class="text-info fw-bold">{{ option.name }}</span>
+                                            <span class="text-muted ms-2">{{ option.description }}</span>
+                                            <span class="text-warning ms-2">[{{ option.get_type_display }}]</span>
+                                            {% if option.required %}
+                                                <span class="text-danger ms-1">*</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-muted">No options defined for this command.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-history me-1"></i>
+                        Sync History
+                    </div>
+                    <div class="card-body">
+                        {% if sync_logs %}
+                            <ul class="timeline">
+                                {% for log in sync_logs %}
+                                    <li class="timeline-item mb-3">
+                                        <span class="timeline-time text-muted">{{ log.timestamp|date:"M d, Y H:i" }}</span>
+                                        <h6 class="timeline-title">
+                                            <span class="badge 
+                                                {% if 'ERROR' in log.event_type %}bg-danger
+                                                {% elif 'SYNCED' in log.event_type %}bg-success
+                                                {% elif 'UPDATED' in log.event_type %}bg-info
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ log.event_type }}
+                                            </span>
+                                        </h6>
+                                        <p class="timeline-text">{{ log.description }}</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No sync history available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Format JSON in textareas
+        $('textarea[name="command_data"]').each(function() {
+            try {
+                const content = $(this).val();
+                if (content) {
+                    const jsonObj = JSON.parse(content);
+                    const formatted = JSON.stringify(jsonObj, null, 2);
+                    $(this).val(formatted);
+                }
+            } catch (e) {
+                console.error("Failed to parse JSON:", e);
+            }
+        });
+        
+        // Bot-Guild dependency
+        $('#id_bot').change(function() {
+            const botId = $(this).val();
+            if (botId) {
+                // Get guilds for selected bot
+                $.ajax({
+                    url: "{% url 'api_guilds_by_bot' %}",
+                    data: {bot_id: botId},
+                    dataType: 'json',
+                    success: function(data) {
+                        const guildSelect = $('#id_guild');
+                        guildSelect.empty();
+                        
+                        // Add global (null) option
+                        guildSelect.append($('<option>', {
+                            value: '',
+                            text: '- Global Command -'
+                        }));
+                        
+                        // Add guilds
+                        $.each(data.guilds, function(i, guild) {
+                            guildSelect.append($('<option>', {
+                                value: guild.id,
+                                text: guild.name
+                            }));
+                        });
+                    },
+                    error: function() {
+                        console.error("Failed to fetch guilds for bot");
+                    }
+                });
+            }
+        });
+        
+        // Trigger guild update if bot is pre-selected
+        if ($('#id_bot').val()) {
+            $('#id_bot').trigger('change');
+        }
+        
+        // Permissions calculator modal
+        $('#permissionsCalculatorBtn').click(function() {
+            $('#permissionsModal').modal('show');
+            updatePermissionsSum();
+        });
+        
+        // Calculate permissions sum
+        function updatePermissionsSum() {
+            let sum = 0;
+            $('.permission-checkbox:checked').each(function() {
+                sum += parseInt($(this).val());
+            });
+            $('#permissionsSum').val(sum);
+            $('#id_default_member_permissions').val(sum);
+        }
+        
+        // Permission checkboxes
+        $('.permission-checkbox').change(function() {
+            updatePermissionsSum();
+        });
+        
+        // Set checkboxes from current value
+        $('#applyPermissionsBtn').click(function() {
+            const permValue = parseInt($('#permissionsSum').val()) || 0;
+            $('#id_default_member_permissions').val(permValue);
+            $('#permissionsModal').modal('hide');
+        });
+    });
+</script>
+{% endblock %}

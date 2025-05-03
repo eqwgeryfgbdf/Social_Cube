@@ -1,0 +1,122 @@
+{% extends "dashboard/new_base.html" %}
+{% load static %}
+
+{% block title %}Audit Log Detail{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'logging_system:dashboard' %}">Logging System</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'logging_system:audit_log_list' %}">Audit Logs</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Detail</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h1 class="mb-4">Audit Log Detail</h1>
+  
+  <!-- Audit Info -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Basic Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Timestamp:</div>
+            <div class="col-md-8">{{ log.timestamp }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Action:</div>
+            <div class="col-md-8">
+              <span class="badge 
+                {% if log.action == 'create' %}bg-success
+                {% elif log.action == 'update' %}bg-info
+                {% elif log.action == 'delete' %}bg-danger
+                {% elif log.action == 'login' or log.action == 'logout' %}bg-primary
+                {% elif log.action == 'auth_failure' %}bg-warning
+                {% else %}bg-secondary{% endif %}">
+                {{ log.action|title }}
+              </span>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">User:</div>
+            <div class="col-md-8">{{ log.user|default:"System" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">IP Address:</div>
+            <div class="col-md-8">{{ log.ip_address|default:"-" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Entity Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Entity Type:</div>
+            <div class="col-md-8">{{ log.entity_type|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Entity ID:</div>
+            <div class="col-md-8">{{ log.entity_id|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Entity Name:</div>
+            <div class="col-md-8">{{ log.entity_name|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Description:</div>
+            <div class="col-md-8">{{ log.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Changes and Additional Data -->
+  <div class="row mb-4">
+    {% if log.changes %}
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Changes</h5>
+        </div>
+        <div class="card-body">
+          <pre class="rounded bg-light p-3 mb-0"><code>{{ log.changes|pprint }}</code></pre>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    {% if log.additional_data %}
+    <div class="col-md-{% if log.changes %}6{% else %}12{% endif %}">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Additional Data</h5>
+        </div>
+        <div class="card-body">
+          <pre class="rounded bg-light p-3 mb-0"><code>{{ log.additional_data|pprint }}</code></pre>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Actions -->
+  <div class="mb-4">
+    <a href="{% url 'logging_system:audit_log_list' %}" class="btn btn-primary">
+      <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+  </div>
+</div>
+{% endblock %}

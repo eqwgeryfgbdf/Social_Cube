@@ -1,0 +1,327 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}{{ guild.name }} - Social Cube{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">儀表板</a></li>
+<li class="breadcrumb-item"><a href="{% url 'guild_list' %}?bot_id={{ guild.bot.id }}">伺服器</a></li>
+<li class="breadcrumb-item active">{{ guild.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-0">
+                        {{ guild.name }}
+                        {% if guild.is_available %}
+                            <span class="badge bg-success">可用</span>
+                        {% else %}
+                            <span class="badge bg-danger">不可用</span>
+                        {% endif %}
+                    </h1>
+                    <p class="text-muted">連接到: <a href="{% url 'bot_detail' guild.bot.id %}">{{ guild.bot.name }}</a></p>
+                </div>
+                <div>
+                    {% if guild.icon_url %}
+                        <img src="{{ guild.icon_url }}" alt="{{ guild.name }}" class="rounded-circle" style="width: 64px; height: 64px;">
+                    {% else %}
+                        <div class="rounded-circle bg-light d-flex justify-content-center align-items-center" style="width: 64px; height: 64px;">
+                            <i class="bi bi-discord fs-2 text-primary"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <form action="{% url 'sync_guild' guild.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success" onclick="return confirm('是否與 Discord 同步此伺服器?')">
+                        <i class="bi bi-arrow-repeat me-1"></i> 與 Discord 同步
+                    </button>
+                </form>
+                <a href="{% url 'guild_channels' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-hash me-1"></i> 檢視頻道
+                </a>
+                <a href="{% url 'guild_commands' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-terminal me-1"></i> 檢視指令
+                </a>
+                <a href="{% url 'guild_settings' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-gear me-1"></i> 管理設定
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Guild Details -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-info-circle me-1"></i>
+                    伺服器資訊
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped mb-0">
+                        <tbody>
+                            <tr>
+                                <th style="width: 35%">伺服器 ID</th>
+                                <td><code>{{ guild.guild_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>所有者 ID</th>
+                                <td><code>{{ guild.owner_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>成員數量</th>
+                                <td>{{ guild.member_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>地區</th>
+                                <td>{{ guild.region|default:"未知" }}</td>
+                            </tr>
+                            <tr>
+                                <th>加入時間</th>
+                                <td>{{ guild.joined_at|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th>最後同步</th>
+                                <td>{{ guild.last_sync|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th>描述</th>
+                                <td>{{ guild.description|default:"無描述" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-gear me-1"></i>
+                    伺服器設定
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped mb-0">
+                        <tbody>
+                            <tr>
+                                <th style="width: 35%">指令前綴</th>
+                                <td><code>{{ settings.prefix }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>通知頻道</th>
+                                <td>
+                                    {% if settings.notification_channel_id %}
+                                        {% for channel in text_channels %}
+                                            {% if channel.channel_id == settings.notification_channel_id %}
+                                                #{{ channel.name }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">未設定</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>歡迎訊息</th>
+                                <td>
+                                    {% if settings.enable_welcome_messages %}
+                                        <span class="text-success"><i class="bi bi-check-circle"></i> 啟用</span>
+                                    {% else %}
+                                        <span class="text-danger"><i class="bi bi-x-circle"></i> 停用</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>告別訊息</th>
+                                <td>
+                                    {% if settings.enable_goodbye_messages %}
+                                        <span class="text-success"><i class="bi bi-check-circle"></i> 啟用</span>
+                                    {% else %}
+                                        <span class="text-danger"><i class="bi bi-x-circle"></i> 停用</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>成員追蹤</th>
+                                <td>
+                                    {% if settings.enable_member_tracking %}
+                                        <span class="text-success"><i class="bi bi-check-circle"></i> 啟用</span>
+                                    {% else %}
+                                        <span class="text-danger"><i class="bi bi-x-circle"></i> 停用</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>管理功能</th>
+                                <td>
+                                    {% if settings.enable_moderation %}
+                                        <span class="text-success"><i class="bi bi-check-circle"></i> 啟用</span>
+                                    {% else %}
+                                        <span class="text-danger"><i class="bi bi-x-circle"></i> 停用</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'guild_settings' guild.id %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-1"></i> 編輯設定
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <!-- Channel Overview -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-hash me-1"></i>
+                        頻道概覽
+                    </div>
+                    <a href="{% url 'guild_channels' guild.id %}" class="btn btn-sm btn-light">查看全部</a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-center">
+                                <h3 class="display-4 mb-0">{{ text_channels.count }}</h3>
+                                <p class="mb-0">文字頻道</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-center">
+                                <h3 class="display-4 mb-0">{{ voice_channels.count }}</h3>
+                                <p class="mb-0">語音頻道</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-center">
+                                <h3 class="display-4 mb-0">{{ categories.count }}</h3>
+                                <p class="mb-0">類別</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if text_channels %}
+                        <div class="mt-3">
+                            <h5>文字頻道</h5>
+                            <div class="list-group">
+                                {% for channel in text_channels|slice:":5" %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-hash me-1"></i> {{ channel.name }}
+                                            {% if channel.is_nsfw %}
+                                                <span class="badge bg-danger ms-1">NSFW</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if channel.topic %}
+                                            <span class="text-muted small" title="{{ channel.topic }}">
+                                                {{ channel.topic|truncatechars:30 }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                {% if text_channels.count > 5 %}
+                                    <div class="list-group-item text-center text-muted">
+                                        <a href="{% url 'guild_channels' guild.id %}">查看全部 {{ text_channels.count }} 個文字頻道</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Commands Overview -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-terminal me-1"></i>
+                        指令概覽
+                    </div>
+                    <a href="{% url 'guild_commands' guild.id %}" class="btn btn-sm btn-light">查看全部</a>
+                </div>
+                <div class="card-body">
+                    {% if commands %}
+                        <div class="list-group">
+                            {% for command in commands|slice:":5" %}
+                                <a href="{% url 'command_detail' command.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="fw-bold">/{{ command.name }}</span>
+                                        {% if not command.is_active %}
+                                            <span class="badge bg-secondary ms-1">未啟用</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="text-muted small">{{ command.description|truncatechars:40 }}</span>
+                                </a>
+                            {% endfor %}
+                            {% if commands.count > 5 %}
+                                <div class="list-group-item text-center text-muted">
+                                    <a href="{% url 'guild_commands' guild.id %}">查看全部 {{ commands.count }} 個伺服器指令</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <h5>沒有伺服器專屬指令</h5>
+                            <p>此伺服器沒有專屬指令。<a href="{% url 'command_create' %}?bot={{ guild.bot.id }}&guild={{ guild.id }}" class="alert-link">為此伺服器建立指令</a>。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recent Logs -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-clock-history me-1"></i>
+                    最近活動
+                </div>
+                <div class="card-body">
+                    {% if logs %}
+                        <div class="list-group">
+                            {% for log in logs %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ log.event_type }}</h6>
+                                        <small class="text-muted">{{ log.timestamp|timesince }} 前</small>
+                                    </div>
+                                    <p class="mb-1">{{ log.description }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <p class="mb-0">此伺服器無最近活動紀錄。</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tooltips initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

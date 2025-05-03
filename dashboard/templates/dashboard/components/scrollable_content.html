@@ -1,0 +1,20 @@
+{% comment %}
+/**
+ * Scrollable Content Component
+ * 
+ * A standardized scrollable content area for consistent styling.
+ * 
+ * Usage:
+ * {% include "dashboard/components/scrollable_content.html" with height="64" id="content-id" %}
+ *   Content goes here
+ * {% endinclude %}
+ * 
+ * Parameters:
+ * - height: The height in Tailwind units (default: 64 = 16rem)
+ * - id: The HTML id of the container (optional)
+ */
+{% endcomment %}
+
+<div class="h-{{ height|default:'64' }} overflow-y-auto rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4"{% if id %} id="{{ id }}"{% endif %}>
+  {{ content }}
+</div>

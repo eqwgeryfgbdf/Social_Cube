@@ -1,0 +1,432 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Create New Task | Social Cube{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .required-field label::after {
+        content: " *";
+        color: red;
+    }
+    
+    #formErrors {
+        display: none;
+    }
+    
+    .task-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    /* Select2 customization */
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        min-height: 38px;
+    }
+    
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Add hints below fields */
+    .field-hint {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="task-form-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Create New Task</h1>
+            <a href="{% url 'task:list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Tasks
+            </a>
+        </div>
+        
+        <!-- Alert for form errors -->
+        <div id="formErrors" class="alert alert-danger" role="alert">
+            <h5><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</h5>
+            <ul id="errorList"></ul>
+        </div>
+        
+        <!-- Task Form -->
+        <form id="taskForm" method="post" action="{% url 'task:create' %}">
+            {% csrf_token %}
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Title Field -->
+                    <div class="mb-3 required-field">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required maxlength="200">
+                        <div class="field-hint">A clear, concise title for the task (max 200 characters)</div>
+                    </div>
+                    
+                    <!-- Description Field -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        <div class="field-hint">A brief summary of what the task involves</div>
+                    </div>
+                    
+                    <!-- Status & Priority -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="pending" selected>Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="deferred">Deferred</option>
+                                <option value="canceled">Canceled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Due Date -->
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label">Due Date</label>
+                        <input type="datetime-local" class="form-control" id="dueDate" name="due_date">
+                        <div class="field-hint">When this task should be completed (optional)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Dependencies & Assignment</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Dependencies -->
+                    <div class="mb-3">
+                        <label for="dependencies" class="form-label">Dependencies</label>
+                        <select class="form-select" id="dependencies" name="dependencies" multiple>
+                            {% for task in available_tasks %}
+                                <option value="{{ task.id }}">{{ task.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="field-hint">Select tasks that must be completed before this task can start</div>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags</label>
+                        <select class="form-select" id="tags" name="tags" multiple>
+                            {% for tag in available_tags %}
+                                <option value="{{ tag.id }}">{{ tag.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="field-hint">Add tags to categorize this task</div>
+                    </div>
+                    
+                    <!-- Assigned To -->
+                    <div class="mb-3">
+                        <label for="assignedTo" class="form-label">Assigned To</label>
+                        <select class="form-select" id="assignedTo" name="assigned_to">
+                            <option value="">Unassigned</option>
+                            {% for user in available_users %}
+                                <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="field-hint">Select a user to assign to this task (optional)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Additional Details</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Details Field -->
+                    <div class="mb-3">
+                        <label for="details" class="form-label">Implementation Details</label>
+                        <textarea class="form-control" id="details" name="details" rows="5"></textarea>
+                        <div class="field-hint">Detailed notes on how to implement this task</div>
+                    </div>
+                    
+                    <!-- Test Strategy Field -->
+                    <div class="mb-3">
+                        <label for="testStrategy" class="form-label">Test Strategy</label>
+                        <textarea class="form-control" id="testStrategy" name="test_strategy" rows="3"></textarea>
+                        <div class="field-hint">How this task should be tested or verified</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="metadataCard">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Custom Metadata</h5>
+                    <button type="button" id="addMetadataBtn" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus"></i> Add Field
+                    </button>
+                </div>
+                <div class="card-body" id="metadataFieldsContainer">
+                    <p class="text-muted" id="noMetadataMessage">No custom metadata fields added. Click the "Add Field" button to add custom properties to this task.</p>
+                    <!-- Custom metadata fields will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" onclick="location.href='{% url 'task:list' %}'">Cancel</button>
+                <div>
+                    <button type="submit" class="btn btn-primary" name="save_action" value="save">
+                        <i class="fas fa-save"></i> Save Task
+                    </button>
+                    <button type="submit" class="btn btn-success" name="save_action" value="save_and_new">
+                        <i class="fas fa-plus"></i> Save & Create Another
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 on multiple select fields
+        $('#dependencies, #tags').select2({
+            placeholder: 'Select...',
+            allowClear: true,
+            width: '100%'
+        });
+        
+        // Handle metadata fields
+        let metadataFieldCount = 0;
+        
+        // Add metadata field button handler
+        $('#addMetadataBtn').on('click', function() {
+            addMetadataField();
+        });
+        
+        // Function to add a new metadata field
+        function addMetadataField(key = '', value = '') {
+            metadataFieldCount++;
+            
+            // Hide the "no metadata" message
+            $('#noMetadataMessage').hide();
+            
+            const fieldHtml = `
+                <div class="row metadata-field mb-3" id="metadata-row-${metadataFieldCount}">
+                    <div class="col-md-5">
+                        <input type="text" class="form-control metadata-key" 
+                               name="meta_key_${metadataFieldCount}" 
+                               placeholder="Field name" 
+                               value="${key}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control metadata-value" 
+                               name="meta_${key || ('key_' + metadataFieldCount)}" 
+                               placeholder="Field value" 
+                               value="${value}">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-remove-metadata" 
+                                data-field-id="${metadataFieldCount}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            $('#metadataFieldsContainer').append(fieldHtml);
+            
+            // Update field name when key changes
+            $(`#metadata-row-${metadataFieldCount} .metadata-key`).on('change', function() {
+                const newKey = $(this).val();
+                const valueField = $(`#metadata-row-${metadataFieldCount} .metadata-value`);
+                valueField.attr('name', `meta_${newKey}`);
+            });
+            
+            // Remove button handler
+            $(`#metadata-row-${metadataFieldCount} .btn-remove-metadata`).on('click', function() {
+                const fieldId = $(this).data('field-id');
+                $(`#metadata-row-${fieldId}`).remove();
+                
+                // Show the "no metadata" message if no fields remain
+                if ($('.metadata-field').length === 0) {
+                    $('#noMetadataMessage').show();
+                }
+            });
+        }
+        
+        // Add custom validation
+        $('#taskForm').on('submit', function(e) {
+            const errors = [];
+            
+            // Check title
+            const title = $('#title').val().trim();
+            if (!title) {
+                errors.push('Task title cannot be empty');
+                $('#title').addClass('is-invalid');
+            } else if (title.length > 200) {
+                errors.push('Task title cannot exceed 200 characters');
+                $('#title').addClass('is-invalid');
+            } else {
+                $('#title').removeClass('is-invalid');
+            }
+            
+            // Display errors if any
+            if (errors.length > 0) {
+                e.preventDefault();
+                
+                // Show error alert
+                $('#errorList').empty();
+                errors.forEach(error => {
+                    $('#errorList').append(`<li>${error}</li>`);
+                });
+                $('#formErrors').show();
+                
+                // Scroll to errors
+                $('html, body').animate({
+                    scrollTop: $('#formErrors').offset().top - 20
+                }, 200);
+            } else {
+                $('#formErrors').hide();
+            }
+        });
+        
+        // Reset validation on input change
+        $('#title').on('input', function() {
+            $(this).removeClass('is-invalid');
+        });
+        
+        // Submit form via AJAX
+        $('#taskForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Hide any previous errors
+            $('#formErrors').hide();
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const saveAction = $(document.activeElement).val();
+            formData.append('save_action', saveAction);
+            
+            // Convert to JSON format
+            const jsonData = {};
+            const metadata = {};
+            let hasMetadata = false;
+            
+            formData.forEach((value, key) => {
+                // Handle metadata fields
+                if (key.startsWith('meta_') && !key.startsWith('meta_key_')) {
+                    const metaKey = key.replace('meta_', '');
+                    metadata[metaKey] = value;
+                    hasMetadata = true;
+                }
+                // Handle multiple select fields
+                else if (key === 'dependencies' || key === 'tags') {
+                    if (!jsonData[key]) {
+                        jsonData[key] = [];
+                    }
+                    jsonData[key].push(parseInt(value));
+                } else if (key === 'assigned_to' && value) {
+                    jsonData['assigned_to_id'] = parseInt(value);
+                } else if (!key.startsWith('meta_key_')) { // Skip meta key field names
+                    jsonData[key] = value;
+                }
+            });
+            
+            // Add metadata to JSON data if any exists
+            if (hasMetadata) {
+                jsonData['metadata'] = metadata;
+            }
+            
+            // Send AJAX request
+            $.ajax({
+                url: '{% url "task:api_tasks" %}',
+                type: 'POST',
+                data: JSON.stringify(jsonData),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    // Show success message
+                    const toast = $(`
+                        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                            <div class="toast-header bg-success text-white">
+                                <strong class="me-auto">Success</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                Task "${response.title}" created successfully!
+                            </div>
+                        </div>
+                    `);
+                    
+                    $('#toastContainer').append(toast);
+                    const bsToast = new bootstrap.Toast(toast[0]);
+                    bsToast.show();
+                    
+                    // Redirect or reset form based on save action
+                    if (saveAction === 'save') {
+                        window.location.href = '/task/';
+                    } else {
+                        // Reset form for "Save & Create Another"
+                        $('#taskForm')[0].reset();
+                        $('#dependencies, #tags').val(null).trigger('change');
+                    }
+                },
+                error: function(xhr) {
+                    // Parse error response
+                    let errors = [];
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        // Collect error messages
+                        for (const field in response) {
+                            if (Array.isArray(response[field])) {
+                                response[field].forEach(error => {
+                                    errors.push(`${field}: ${error}`);
+                                });
+                            } else if (typeof response[field] === 'string') {
+                                errors.push(`${field}: ${response[field]}`);
+                            }
+                        }
+                    } catch (e) {
+                        errors.push('An unexpected error occurred. Please try again.');
+                    }
+                    
+                    // Display errors
+                    $('#errorList').empty();
+                    errors.forEach(error => {
+                        $('#errorList').append(`<li>${error}</li>`);
+                    });
+                    $('#formErrors').show();
+                    
+                    // Scroll to errors
+                    $('html, body').animate({
+                        scrollTop: $('#formErrors').offset().top - 20
+                    }, 200);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

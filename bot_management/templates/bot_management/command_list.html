@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Commands - Social Cube{% endblock %}
+
+{% block page_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle links with data-method="post" by creating and submitting a form
+        document.querySelectorAll('a[data-method="post"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // If there's a confirmation and the user cancels, don't proceed
+                if (this.hasAttribute('onclick')) {
+                    const onclickValue = this.getAttribute('onclick');
+                    if (onclickValue.includes('confirm') && !eval(onclickValue)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                
+                e.preventDefault();
+                
+                // Create a form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = this.href;
+                form.style.display = 'none';
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add the form to the document and submit it
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+        
+        // Initialize tooltips
+        const tooltipTriggerList = document.querySelectorAll('[title]');
+        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    });
+    
+    // Command type chart (if it exists)
+    const commandTypeChart = document.getElementById('commandTypeChart');
+    if (commandTypeChart) {
+        new Chart(commandTypeChart, {
+            type: 'doughnut',
+            data: {
+                labels: ['Slash Commands', 'User Commands', 'Message Commands'],
+                datasets: [{
+                    data: [{{ slash_commands|default:0 }}, {{ user_commands|default:0 }}, {{ message_commands|default:0 }}],
+                    backgroundColor: ['#0d6efd', '#20c997', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Command Types'
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Discord Commands</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Commands</li>
+    </ol>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-terminal me-1"></i>
+                Manage Commands
+            </div>
+            <div>
+                <a href="{% url 'command_create' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> New Command
+                </a>
+                <a href="{% url 'command_sync_all' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-sync me-1"></i> Sync All
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <form method="get" class="d-flex">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search commands..." 
+                                   name="q" value="{{ request.GET.q|default:'' }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <select name="bot" class="form-select ms-2" style="max-width: 200px;" onchange="this.form.submit()">
+                            <option value="">All Bots</option>
+                            {% for bot_option in bots %}
+                                <option value="{{ bot_option.id }}" {% if bot_filter == bot_option.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ bot_option.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <select name="type" class="form-select ms-2" style="max-width: 200px;" onchange="this.form.submit()">
+                            <option value="">All Types</option>
+                            {% for type_value, type_name in command_types %}
+                                <option value="{{ type_value }}" {% if type_filter == type_value %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group" role="group">
+                        <a href="?status=active" class="btn btn-outline-success {% if status_filter == 'active' %}active{% endif %}">Active</a>
+                        <a href="?status=inactive" class="btn btn-outline-secondary {% if status_filter == 'inactive' %}active{% endif %}">Inactive</a>
+                        <a href="?" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">All</a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if commands %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Bot</th>
+                                <th>Type</th>
+                                <th>Guild</th>
+                                <th>Status</th>
+                                <th>Last Synced</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for command in commands %}
+                                <tr class="{% if not command.is_active %}table-secondary{% endif %}">
+                                    <td>
+                                        <a href="{% url 'command_detail' command.id %}" class="fw-bold text-decoration-none">
+                                            /{{ command.name }}
+                                        </a>
+                                        <div class="small text-muted">{{ command.description|truncatechars:60 }}</div>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'bot_detail' command.bot.id %}" class="text-decoration-none">
+                                            {{ command.bot.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if command.type == 1 %}
+                                            <span class="badge bg-primary">CHAT_INPUT</span>
+                                        {% elif command.type == 2 %}
+                                            <span class="badge bg-info">USER</span>
+                                        {% elif command.type == 3 %}
+                                            <span class="badge bg-warning">MESSAGE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if command.guild %}
+                                            <a href="{% url 'guild_detail' command.guild.id %}" class="text-decoration-none">
+                                                {{ command.guild.name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Global</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if command.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                        {% if command.is_nsfw %}
+                                            <span class="badge bg-danger ms-1">NSFW</span>
+                                        {% endif %}
+                                        {% if not command.is_dm_enabled %}
+                                            <span class="badge bg-warning ms-1">No DMs</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if command.last_synced %}
+                                            {% with time_diff=command.last_synced|timesince %}
+                                                <span class="badge {% if 'days' in time_diff or 'weeks' in time_diff or 'months' in time_diff %}bg-warning{% elif 'hour' in time_diff %}bg-info{% else %}bg-success{% endif %} sync-status" 
+                                                      title="Last synced: {{ command.last_synced }}">
+                                                    <i class="fas fa-sync-alt me-1"></i> {{ time_diff }} ago
+                                                </span>
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="badge bg-danger sync-status" title="This command has never been synced with Discord">
+                                                <i class="fas fa-exclamation-circle me-1"></i> Never synced
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'command_detail' command.id %}" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'command_update' command.id %}" class="btn btn-outline-secondary" title="Edit command">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'command_sync' command.id %}" class="btn btn-outline-success" title="Sync with Discord"
+                                               data-method="post" onclick="return confirm('Sync this command with Discord?')">
+                                                <i class="fas fa-sync"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ command.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal{{ command.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Delete Command</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Are you sure you want to delete the command <strong>/{{ command.name }}</strong>?</p>
+                                                        <p class="text-danger">This will remove the command from Discord!</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <a href="{% url 'command_delete' command.id %}" class="btn btn-danger">
+                                                            Delete Command
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{{ query_params }}" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{{ query_params }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ query_params }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    {% if request.GET.q or bot_filter or type_filter or status_filter %}
+                        <h5>No commands match your search criteria</h5>
+                        <p>Try adjusting your filters or <a href="{% url 'command_list' %}" class="alert-link">view all commands</a>.</p>
+                    {% else %}
+                        <h5>No commands found</h5>
+                        <p>Get started by <a href="{% url 'command_create' %}" class="alert-link">creating your first Discord command</a>.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    Command Statistics
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-4">
+                            <div class="card bg-primary text-white h-100">
+                                <div class="card-body py-4">
+                                    <h2 class="display-5">{{ total_commands }}</h2>
+                                    <div>Total Commands</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card bg-success text-white h-100">
+                                <div class="card-body py-4">
+                                    <h2 class="display-5">{{ active_commands }}</h2>
+                                    <div>Active Commands</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card bg-warning text-dark h-100">
+                                <div class="card-body py-4">
+                                    <h2 class="display-5">{{ usage_count }}</h2>
+                                    <div>Total Uses</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <canvas id="commandTypeChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Command Usage
+                </div>
+                <div class="card-body">
+                    <canvas id="commandUsageChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        // Command Type Distribution Chart
+        const typeCtx = document.getElementById('commandTypeChart').getContext('2d');
+        new Chart(typeCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Chat Input', 'User Context', 'Message Context'],
+                datasets: [{
+                    data: [{{ chat_input_count }}, {{ user_command_count }}, {{ message_command_count }}],
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(255, 193, 7, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(13, 110, 253, 1)',
+                        'rgba(13, 202, 240, 1)',
+                        'rgba(255, 193, 7, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Command Types Distribution'
+                    }
+                }
+            }
+        });
+        
+        // Command Usage Chart
+        const usageCtx = document.getElementById('commandUsageChart').getContext('2d');
+        new Chart(usageCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ top_commands_names|safe }},
+                datasets: [{
+                    label: 'Usage Count',
+                    data: {{ top_commands_counts|safe }},
+                    backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of uses'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Command'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Most Used Commands'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1 @@
+default_app_config = 'logging_system.apps.LoggingSystemConfig'

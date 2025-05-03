@@ -1,0 +1,227 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}指令 - {{ guild.name }} - Social Cube{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">儀表板</a></li>
+<li class="breadcrumb-item"><a href="{% url 'guild_list' %}?bot_id={{ guild.bot.id }}">伺服器</a></li>
+<li class="breadcrumb-item"><a href="{% url 'guild_detail' guild.id %}">{{ guild.name }}</a></li>
+<li class="breadcrumb-item active">指令</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">{{ guild.name }} 的指令</h1>
+                <div>
+                    {% if guild.icon_url %}
+                        <img src="{{ guild.icon_url }}" alt="{{ guild.name }}" class="rounded-circle" style="width: 64px; height: 64px;">
+                    {% else %}
+                        <div class="rounded-circle bg-light d-flex justify-content-center align-items-center" style="width: 64px; height: 64px;">
+                            <i class="bi bi-discord fs-2 text-primary"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{% url 'command_create' %}?bot={{ guild.bot.id }}&guild={{ guild.id }}" class="btn btn-success">
+                    <i class="bi bi-plus-lg me-1"></i> 新增伺服器指令
+                </a>
+                <form action="{% url 'sync_guild' guild.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success" onclick="return confirm('是否與 Discord 同步伺服器指令?')">
+                        <i class="bi bi-arrow-repeat me-1"></i> 同步指令
+                    </button>
+                </form>
+                <a href="{% url 'guild_detail' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-info-circle me-1"></i> 伺服器詳情
+                </a>
+                <a href="{% url 'guild_channels' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-hash me-1"></i> 檢視頻道
+                </a>
+                <a href="{% url 'guild_settings' guild.id %}" class="btn btn-primary">
+                    <i class="bi bi-gear me-1"></i> 管理設定
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-terminal me-1"></i>
+            伺服器指令
+        </div>
+        <div class="card-body">
+            {% if guild_commands %}
+                <h5 class="mb-3">伺服器專屬指令</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>名稱</th>
+                                <th>類型</th>
+                                <th>描述</th>
+                                <th>狀態</th>
+                                <th>最後同步</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for command in guild_commands %}
+                                <tr class="{% if not command.is_active %}table-secondary{% endif %}">
+                                    <td>
+                                        <a href="{% url 'command_detail' command.id %}" class="fw-bold text-decoration-none">
+                                            /{{ command.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if command.type == 1 %}
+                                            <span class="badge bg-primary">CHAT_INPUT</span>
+                                        {% elif command.type == 2 %}
+                                            <span class="badge bg-info">USER</span>
+                                        {% elif command.type == 3 %}
+                                            <span class="badge bg-warning">MESSAGE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ command.description|truncatechars:60 }}</td>
+                                    <td>
+                                        {% if command.is_active %}
+                                            <span class="badge bg-success">啟用</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">停用</span>
+                                        {% endif %}
+                                        {% if command.is_nsfw %}
+                                            <span class="badge bg-danger ms-1">NSFW</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if command.last_synced_at %}
+                                            <span title="{{ command.last_synced_at }}">
+                                                {{ command.last_synced_at|timesince }} 前
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">從未</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'command_detail' command.id %}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'command_update' command.id %}" class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form action="{% url 'command_sync' command.id %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-success" onclick="return confirm('是否與 Discord 同步此指令?')">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-4">
+                    <h5>沒有伺服器專屬指令</h5>
+                    <p>此伺服器沒有專屬指令。<a href="{% url 'command_create' %}?bot={{ guild.bot.id }}&guild={{ guild.id }}" class="alert-link">為此伺服器建立指令</a>。</p>
+                </div>
+            {% endif %}
+            
+            {% if global_commands %}
+                <h5 class="mt-4 mb-3">此伺服器可用的全域指令</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>名稱</th>
+                                <th>類型</th>
+                                <th>描述</th>
+                                <th>狀態</th>
+                                <th>最後同步</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for command in global_commands %}
+                                <tr class="{% if not command.is_active %}table-secondary{% endif %}">
+                                    <td>
+                                        <a href="{% url 'command_detail' command.id %}" class="fw-bold text-decoration-none">
+                                            /{{ command.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if command.type == 1 %}
+                                            <span class="badge bg-primary">CHAT_INPUT</span>
+                                        {% elif command.type == 2 %}
+                                            <span class="badge bg-info">USER</span>
+                                        {% elif command.type == 3 %}
+                                            <span class="badge bg-warning">MESSAGE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ command.description|truncatechars:60 }}</td>
+                                    <td>
+                                        {% if command.is_active %}
+                                            <span class="badge bg-success">啟用</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">停用</span>
+                                        {% endif %}
+                                        {% if command.is_nsfw %}
+                                            <span class="badge bg-danger ms-1">NSFW</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if command.last_synced_at %}
+                                            <span title="{{ command.last_synced_at }}">
+                                                {{ command.last_synced_at|timesince }} 前
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">從未</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'command_detail' command.id %}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <h5>沒有全域指令</h5>
+                    <p>此機器人沒有可用的全域指令。<a href="{% url 'command_create' %}?bot={{ guild.bot.id }}" class="alert-link">建立全域指令</a>。</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tooltips initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

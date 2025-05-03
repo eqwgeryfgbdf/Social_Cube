@@ -1,0 +1,122 @@
+{% extends "dashboard/new_base.html" %}
+{% load static %}
+
+{% block title %}Error Log Detail{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'logging_system:dashboard' %}">Logging System</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'logging_system:error_log_list' %}">Error Logs</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Detail</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h1 class="mb-4">Error Log Detail</h1>
+  
+  <!-- Error Info -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Basic Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Timestamp:</div>
+            <div class="col-md-8">{{ log.timestamp }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Level:</div>
+            <div class="col-md-8">{{ log.colored_level|safe }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Logger:</div>
+            <div class="col-md-8">{{ log.logger_name }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Exception Type:</div>
+            <div class="col-md-8">{{ log.exception_type|default:"-" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Context Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Path:</div>
+            <div class="col-md-8">{{ log.request_path|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">User:</div>
+            <div class="col-md-8">{{ log.user|default:"-" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">IP Address:</div>
+            <div class="col-md-8">{{ log.ip_address|default:"-" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Message and Traceback -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Error Message</h5>
+        </div>
+        <div class="card-body">
+          <p>{{ log.message }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Traceback</h5>
+        </div>
+        <div class="card-body">
+          <pre class="rounded bg-light p-3 mb-0 overflow-auto" style="max-height: 400px;"><code>{{ log.traceback }}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Additional Data -->
+  {% if log.additional_data %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Additional Data</h5>
+        </div>
+        <div class="card-body">
+          <pre class="rounded bg-light p-3 mb-0"><code>{{ log.additional_data|pprint }}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Actions -->
+  <div class="mb-4">
+    <a href="{% url 'logging_system:error_log_list' %}" class="btn btn-primary">
+      <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends 'dashboard/new_base.html' %}
+{% load static %}
+
+{% block title %}User Settings - Social Cube{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">儀表板</a></li>
+<li class="breadcrumb-item"><a href="{% url 'dashboard:profile' %}">個人檔案</a></li>
+<li class="breadcrumb-item active">設定</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear-fill me-2"></i>儀表板設定
+                    </h5>
+                    <span class="badge bg-info">{{ user.username }}</span>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" id="settings-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <h6 class="form-label fw-bold">介面設定</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.enable_dark_mode }}
+                                        <label class="form-check-label" for="{{ form.enable_dark_mode.id_for_label }}">
+                                            啟用深色模式
+                                        </label>
+                                        {% if form.enable_dark_mode.help_text %}
+                                            <div class="form-text text-muted">{{ form.enable_dark_mode.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.dashboard_layout.id_for_label }}" class="form-label">儀表板佈局</label>
+                                        {{ form.dashboard_layout }}
+                                        {% if form.dashboard_layout.help_text %}
+                                            <div class="form-text text-muted">{{ form.dashboard_layout.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.dashboard_layout.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.dashboard_layout.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="form-label fw-bold">通知設定</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.email_notifications }}
+                                        <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">
+                                            電子郵件通知
+                                        </label>
+                                        {% if form.email_notifications.help_text %}
+                                            <div class="form-text text-muted">{{ form.email_notifications.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.discord_notifications }}
+                                        <label class="form-check-label" for="{{ form.discord_notifications.id_for_label }}">
+                                            Discord 通知
+                                        </label>
+                                        {% if form.discord_notifications.help_text %}
+                                            <div class="form-text text-muted">{{ form.discord_notifications.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="form-label fw-bold">通知類型</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.notify_on_bot_status_change }}
+                                        <label class="form-check-label" for="{{ form.notify_on_bot_status_change.id_for_label }}">
+                                            機器人狀態變更
+                                        </label>
+                                        {% if form.notify_on_bot_status_change.help_text %}
+                                            <div class="form-text text-muted">{{ form.notify_on_bot_status_change.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.notify_on_server_join }}
+                                        <label class="form-check-label" for="{{ form.notify_on_server_join.id_for_label }}">
+                                            機器人加入新伺服器
+                                        </label>
+                                        {% if form.notify_on_server_join.help_text %}
+                                            <div class="form-text text-muted">{{ form.notify_on_server_join.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.notify_on_command_usage }}
+                                        <label class="form-check-label" for="{{ form.notify_on_command_usage.id_for_label }}">
+                                            指令使用
+                                        </label>
+                                        {% if form.notify_on_command_usage.help_text %}
+                                            <div class="form-text text-muted">{{ form.notify_on_command_usage.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.notify_on_error }}
+                                        <label class="form-check-label" for="{{ form.notify_on_error.id_for_label }}">
+                                            錯誤發生
+                                        </label>
+                                        {% if form.notify_on_error.help_text %}
+                                            <div class="form-text text-muted">{{ form.notify_on_error.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'dashboard:profile' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>返回個人檔案
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>儲存設定
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('settings-form');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Create form data
+            const formData = new FormData(form);
+            
+            // Submit form via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const alertHTML = `
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            設定更新成功！
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    
+                    // Insert alert at the top of the form
+                    form.insertAdjacentHTML('beforebegin', alertHTML);
+                    
+                    // Auto-close the alert after 3 seconds
+                    setTimeout(() => {
+                        const alert = document.querySelector('.alert');
+                        if (alert) {
+                            const bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }
+                    }, 3000);
+                    
+                    // Apply dark mode immediately if changed
+                    if (document.getElementById('{{ form.enable_dark_mode.id_for_label }}').checked) {
+                        document.documentElement.classList.add('dark-mode');
+                    } else {
+                        document.documentElement.classList.remove('dark-mode');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const alertHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        設定更新失敗，請重試。
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                form.insertAdjacentHTML('beforebegin', alertHTML);
+            });
+        });
+    });
+</script>
+{% endblock %}

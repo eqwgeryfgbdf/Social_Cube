@@ -1,0 +1,270 @@
+{% extends 'dashboard/new_base.html' %}
+
+{% block title %}編輯 {{ server.name }} 設定 - Social Cube{% endblock %}
+
+{% block page_title %}編輯伺服器設定{% endblock %}
+
+{% block mobile_title %}編輯伺服器設定{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboard:index' %}" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">儀表板</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboard:servers' %}" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">伺服器</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboard:server_detail' server.id %}" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{{ server.name }}</a>
+</li>
+<li class="breadcrumb-item">
+    <span class="text-gray-800 dark:text-gray-200">編輯設定</span>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-3xl mx-auto">
+        <!-- Server Info Header -->
+        <div class="flex items-center mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+            {% if server.icon_url %}
+                <img src="{{ server.icon_url }}" alt="{{ server.name }}" class="img-avatar img-avatar-lg mr-4">
+            {% else %}
+                <div class="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-4">
+                    <i class="fas fa-server text-2xl text-gray-400 dark:text-gray-500"></i>
+                </div>
+            {% endif %}
+            <div>
+                <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ server.name }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">ID: {{ server.guild_id }} • {{ server.member_count }} 成員</p>
+            </div>
+        </div>
+        
+        <!-- Settings Form -->
+        <form id="server-settings-form" method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- General Settings Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white">一般設定</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="prefix" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">命令前綴</label>
+                        <input type="text" name="prefix" id="prefix" value="{{ settings.prefix|default:'' }}" maxlength="10" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">用於觸發文字命令的前綴符號，例如：! 或 /（如使用斜線命令可留空）</p>
+                    </div>
+                    
+                    <div>
+                        <label for="notification_channel_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">通知頻道</label>
+                        <select name="notification_channel_id" id="notification_channel_id" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                            <option value="">-- 選擇通知頻道 --</option>
+                            {% for channel in text_channels %}
+                                <option value="{{ channel.channel_id }}" {% if settings.notification_channel_id == channel.channel_id %}selected{% endif %}>
+                                    #{{ channel.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">機器人將在此頻道發送系統通知和警告</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white">歡迎和告別訊息</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center mb-4">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="enable_welcome_messages" id="enable_welcome_messages" {% if settings.enable_welcome_messages %}checked{% endif %} class="form-check-input appearance-none w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer shadow-sm checked:bg-primary-500 dark:checked:bg-primary-500">
+                            <label for="enable_welcome_messages" class="form-check-label text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
+                                啟用歡迎訊息
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="welcome_message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">歡迎訊息</label>
+                        <textarea name="welcome_message" id="welcome_message" rows="3" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">{{ settings.welcome_message|default:'' }}</textarea>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">當新成員加入伺服器時發送的訊息。使用 {user} 標籤提及該用戶。</p>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="enable_goodbye_messages" id="enable_goodbye_messages" {% if settings.enable_goodbye_messages %}checked{% endif %} class="form-check-input appearance-none w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer shadow-sm checked:bg-primary-500 dark:checked:bg-primary-500">
+                            <label for="enable_goodbye_messages" class="form-check-label text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
+                                啟用告別訊息
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="goodbye_message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">告別訊息</label>
+                        <textarea name="goodbye_message" id="goodbye_message" rows="3" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">{{ settings.goodbye_message|default:'' }}</textarea>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">當成員離開伺服器時發送的訊息。使用 {user} 標籤顯示用戶名稱。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature Toggles Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white">功能設定</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="enable_member_tracking" id="enable_member_tracking" {% if settings.enable_member_tracking %}checked{% endif %} class="form-check-input appearance-none w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer shadow-sm checked:bg-primary-500 dark:checked:bg-primary-500">
+                            <label for="enable_member_tracking" class="form-check-label text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
+                                啟用成員追蹤
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 ml-12">機器人將追蹤成員加入和離開的時間，以及提供伺服器活動的統計數據</p>
+                    
+                    <div class="mt-4 flex items-center">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="enable_moderation" id="enable_moderation" {% if settings.enable_moderation %}checked{% endif %} class="form-check-input appearance-none w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer shadow-sm checked:bg-primary-500 dark:checked:bg-primary-500">
+                            <label for="enable_moderation" class="form-check-label text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
+                                啟用管理功能
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 ml-12">啟用自動管理功能，例如不當內容偵測、垃圾訊息過濾和自動警告</p>
+                </div>
+            </div>
+            
+            <!-- Roles Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white">角色設定</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="admin_role_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">管理員角色</label>
+                        <input type="text" name="admin_role_id" id="admin_role_id" value="{{ settings.admin_role_id|default:'' }}" placeholder="角色 ID" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">可以使用管理員級別機器人命令的角色 ID</p>
+                    </div>
+                    
+                    <div>
+                        <label for="moderator_role_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">版主角色</label>
+                        <input type="text" name="moderator_role_id" id="moderator_role_id" value="{{ settings.moderator_role_id|default:'' }}" placeholder="角色 ID" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">可以使用版主級別機器人命令的角色 ID</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Buttons -->
+            <div class="flex justify-between pt-6">
+                <a href="{% url 'dashboard:server_detail' server.id %}" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2 px-6 rounded-lg transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>返回
+                </a>
+                <button type="submit" class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2 px-6 rounded-lg transition-colors">
+                    <i class="fas fa-save mr-2"></i>儲存設定
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('server-settings-form');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Create form data
+            const formData = new FormData(form);
+            
+            // Submit form via AJAX
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showMessage('設定已成功更新！', 'success');
+                    
+                    // Update toggle states
+                    toggleWelcomeMessage();
+                    toggleGoodbyeMessage();
+                } else {
+                    showMessage('更新設定時發生錯誤', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('更新設定時發生錯誤', 'error');
+            });
+        });
+        
+        // Toggle message fields based on checkbox state
+        const welcomeToggle = document.getElementById('enable_welcome_messages');
+        const welcomeMessageField = document.getElementById('welcome_message');
+        const goodbyeToggle = document.getElementById('enable_goodbye_messages');
+        const goodbyeMessageField = document.getElementById('goodbye_message');
+        
+        function toggleWelcomeMessage() {
+            if (welcomeToggle && welcomeMessageField) {
+                welcomeMessageField.disabled = !welcomeToggle.checked;
+                welcomeMessageField.parentElement.style.opacity = welcomeToggle.checked ? '1' : '0.5';
+            }
+        }
+        
+        function toggleGoodbyeMessage() {
+            if (goodbyeToggle && goodbyeMessageField) {
+                goodbyeMessageField.disabled = !goodbyeToggle.checked;
+                goodbyeMessageField.parentElement.style.opacity = goodbyeToggle.checked ? '1' : '0.5';
+            }
+        }
+        
+        // Set initial state
+        toggleWelcomeMessage();
+        toggleGoodbyeMessage();
+        
+        // Add event listeners
+        if (welcomeToggle) {
+            welcomeToggle.addEventListener('change', toggleWelcomeMessage);
+        }
+        
+        if (goodbyeToggle) {
+            goodbyeToggle.addEventListener('change', toggleGoodbyeMessage);
+        }
+    }
+    
+    // Function to show message
+    function showMessage(message, type) {
+        // Create message element
+        const messageEl = document.createElement('div');
+        messageEl.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-md ${
+            type === 'success' 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+        }`;
+        messageEl.innerText = message;
+        
+        // Add to document
+        document.body.appendChild(messageEl);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            messageEl.classList.add('opacity-0', 'transition-opacity');
+            setTimeout(() => {
+                messageEl.remove();
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}
