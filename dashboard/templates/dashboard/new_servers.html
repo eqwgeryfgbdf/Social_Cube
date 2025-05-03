@@ -56,7 +56,7 @@
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center">
                                 {% if server.icon_url %}
-                                    <img src="{{ server.icon_url }}" alt="{{ server.name }}" class="w-12 h-12 rounded-lg mr-4">
+                                    <img src="{{ server.icon_url }}" alt="{{ server.name }}" class="img-avatar img-avatar-lg mr-4">
                                 {% else %}
                                     <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-4">
                                         <i class="fas fa-server text-xl text-gray-500 dark:text-gray-400"></i>
@@ -78,7 +78,7 @@
                                     <span class="text-gray-600 dark:text-gray-400">活躍機器人</span>
                                     <div class="flex -space-x-2">
                                         {% for bot in server.bots %}
-                                            <img src="{{ bot.avatar_url|default:'#' }}" alt="{{ bot.name }}" title="{{ bot.name }}" class="w-6 h-6 rounded-full border-2 border-white dark:border-gray-800">
+                                            <img src="{{ bot.avatar_url|default:'#' }}" alt="{{ bot.name }}" title="{{ bot.name }}" class="img-avatar img-avatar-xs">
                                         {% endfor %}
                                     </div>
                                 </div>

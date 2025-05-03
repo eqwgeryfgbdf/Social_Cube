@@ -226,12 +226,41 @@ pytest
 
 ### Git Workflow
 
-1. Create a feature branch for your work:
+1. Create a feature branch for your work following our naming conventions:
    ```bash
-   git checkout -b feature/descriptive-name
+   git checkout -b feature/descriptive-name_YYYY-MM-DD
    ```
    
 2. Make regular, atomic commits with descriptive messages:
    ```bash
    git commit -m "feat: Add Discord OAuth integration"
+   ```
+
+3. Keep your branch up to date with main:
+   ```bash
+   git fetch origin
+   git rebase origin/main
+   ```
+
+4. Push your branch and create a pull request when ready
+
+5. After merging, follow our [branch cleanup guidelines](docs/code_maintenance_guidelines.md) to maintain repository cleanliness
+
+### Code Maintenance
+
+We follow a structured approach to code maintenance to keep the repository clean and efficient:
+
+1. **Branch Management**: Follow the guidelines in [Code Maintenance Guidelines](docs/code_maintenance_guidelines.md) for branch naming, lifecycle, and cleanup
+
+2. **Script Documentation**: All scripts must include proper documentation headers and usage examples
+
+3. **Regular Cleanup**: We perform regular cleanup of deprecated branches and legacy scripts
+
+4. **Analysis Tools**: Use our custom tools in the `scripts/` directory to identify cleanup candidates:
+   ```bash
+   # Analyze branches and scripts
+   python scripts/branch_script_analyzer.py
+   
+   # Verify and create backups before removal
+   python scripts/verify_and_backup.py
    ```

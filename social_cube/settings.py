@@ -34,10 +34,14 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'corsheaders',
+    'rest_framework',
+    'django_filters',
     'dashboard.apps.DashboardConfig',
     'taskmaster.apps.TaskmasterConfig',
     'bot_management',
     'api',
+    'logging_system',
+    'bug_tracking.apps.BugTrackingConfig',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'logging_system.middleware.RequestLoggingMiddleware',
+    'bug_tracking.middleware.AutomaticBugReportingMiddleware',
 ]
 
 ROOT_URLCONF = 'social_cube.urls'
@@ -57,7 +63,7 @@ ROOT_URLCONF = 'social_cube.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'dashboard' / 'templates', BASE_DIR / 'taskmaster' / 'templates'],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'dashboard' / 'templates', BASE_DIR / 'taskmaster' / 'templates', BASE_DIR / 'bug_tracking' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -139,6 +145,18 @@ LOGOUT_REDIRECT_URL = 'dashboard:index'
 
 # Bot settings
 BOT_TOKEN_KEY = env('BOT_TOKEN_KEY', default=Fernet.generate_key().decode())  # Auto-generate if not provided
+
+# Site URL (for generating absolute URLs)
+BASE_URL = env('BASE_URL', default='http://localhost:8000')
+
+# Email settings
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
 
 # Google OAuth2 settings
 GOOGLE_OAUTH2_CLIENT_SECRETS_FILE = os.path.join(BASE_DIR, 'client_secrets.json')

@@ -564,10 +564,10 @@ body {
     transform: translateX(5px);
 }
 
-/* Image Hover Effect */
+/* Image Hover Effect - Deprecated: Use image-styles.css instead */
 .img-hover {
-    transition: transform 0.3s var(--m3-motion-easing-emphasized),
-                filter 0.3s var(--m3-motion-easing-standard);
+    transition: transform var(--m3-motion-duration-medium, 0.3s) var(--m3-motion-easing-emphasized, cubic-bezier(0.2, 0, 0, 1)),
+                filter var(--m3-motion-duration-medium, 0.3s) var(--m3-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .img-hover:hover {

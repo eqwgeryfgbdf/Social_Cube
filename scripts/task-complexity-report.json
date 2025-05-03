@@ -1,91 +1,99 @@
 {
   "meta": {
-    "generatedAt": "2025-04-26T13:31:54.982Z",
-    "tasksAnalyzed": 10,
+    "generatedAt": "2025-05-03T10:07:06.768Z",
+    "tasksAnalyzed": 11,
     "thresholdScore": 5,
     "projectName": "Your Project Name",
-    "usedResearch": false
+    "usedResearch": true
   },
   "complexityAnalysis": [
     {
-      "taskId": 1,
-      "taskTitle": "Set up Django Project Structure and Environment",
+      "taskId": 14,
+      "taskTitle": "Scan and Remove Unused Frontend Assets",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "List and describe the main subtasks required to systematically identify, document, back up, and safely remove all unused frontend assets (images, stylesheets, JS files). Include steps for tool usage, cross-referencing, documentation, backup, staged removal, and post-removal testing.",
+      "reasoning": "This task requires thorough codebase analysis, tool integration, careful documentation, and safe removal practices to avoid breaking the application. The process involves multiple checks, backups, and iterative validation, making it moderately complex."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Refactor Duplicate Logic in Backend Services and Utils",
+      "complexityScore": 8,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the steps to identify, consolidate, and refactor duplicate code across backend services and utility functions. Include analysis, creation of shared modules, migration, and updating of tests and documentation.",
+      "reasoning": "Refactoring duplicate backend logic is complex due to the need for code analysis, impact assessment, careful migration to shared modules, and ensuring backward compatibility without altering behavior."
+    },
+    {
+      "taskId": 16,
+      "taskTitle": "Implement Unit Test Coverage for Refactored Backend Services",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Define subtasks to identify refactored code, design comprehensive unit tests (including edge cases and error handling), implement fixtures/mocks, and update or add documentation and affected tests.",
+      "reasoning": "While unit testing is a standard process, achieving robust coverage for newly refactored logic requires careful mapping and validation, especially to ensure no regressions or missed edge cases."
+    },
+    {
+      "taskId": 17,
+      "taskTitle": "Apply Asset Compression and Minification for Static Files",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "List the subtasks involved in implementing a full pipeline for compression and minification of static files, including tool selection, build process integration, server configuration, and documentation.",
+      "reasoning": "The task spans multiple asset types and requires integrating and configuring several tools, build systems, and server settings, along with validation and documentation."
+    },
+    {
+      "taskId": 18,
+      "taskTitle": "Clean Up Deprecated Feature Branches and Legacy Scripts",
       "complexityScore": 5,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the Django project setup into subtasks covering: 1) Initial project creation and app structure, 2) Database configuration, 3) Environment and dependency management, and 4) Version control setup",
-      "reasoning": "This task has moderate complexity as it involves multiple components (project structure, database setup, environment configuration, dependencies). It's foundational for the project but follows standard Django practices. Breaking it into 4 distinct areas will make the setup more manageable."
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Detail the steps to inventory, document, back up, and safely remove deprecated branches and scripts, including dependency checks, staged removal, and documentation updates.",
+      "reasoning": "The process is well-defined and procedural, with most complexity arising from ensuring nothing important is deleted and that changes are well-documented."
     },
     {
-      "taskId": 2,
-      "taskTitle": "Implement Discord OAuth2 Authentication System",
-      "complexityScore": 7,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the Discord OAuth2 implementation into subtasks covering: 1) Discord Developer Portal setup, 2) OAuth2 flow implementation, 3) Django authentication backend development, 4) Frontend login/logout implementation, and 5) Token management and security",
-      "reasoning": "OAuth2 implementation has significant complexity due to security requirements, token management, and integration with Discord's API. The task includes both backend and frontend components and requires careful handling of user credentials and tokens."
-    },
-    {
-      "taskId": 3,
-      "taskTitle": "Create BOT Registration and Management Models",
-      "complexityScore": 6,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the BOT registration system into subtasks covering: 1) Database model design and implementation, 2) Form and view creation for CRUD operations, 3) Admin interface customization, and 4) Secure token storage implementation",
-      "reasoning": "This task involves database design, security considerations for token storage, and complete CRUD functionality. The complexity comes from ensuring proper data relationships and implementing secure token handling."
-    },
-    {
-      "taskId": 4,
-      "taskTitle": "Implement Discord BOT Integration with discord.py",
+      "taskId": 19,
+      "taskTitle": "Dependency Audit and Optimization for JavaScript and Python Packages",
       "complexityScore": 8,
       "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the Discord BOT integration into subtasks covering: 1) Client setup with app_commands, 2) Event handling implementation, 3) Command structure development, 4) Multi-instance BOT management service, and 5) Error handling and monitoring systems",
-      "reasoning": "This is a core functionality task with high complexity due to the need to handle asynchronous operations, implement event-driven architecture, and manage multiple BOT instances. The integration with Discord's API and proper error handling adds significant complexity."
+      "expansionPrompt": "Outline the main subtasks to audit, categorize, optimize, and document dependencies for both JavaScript and Python, including tool usage, security analysis, and reporting.",
+      "reasoning": "Auditing and optimizing dependencies across two ecosystems is intricate, requiring deep code analysis, tool integration, risk management, and thorough documentation."
     },
     {
-      "taskId": 5,
-      "taskTitle": "Develop Command Management System",
-      "complexityScore": 7,
+      "taskId": 20,
+      "taskTitle": "Implement Dynamic Loading for Non-Critical Application Modules",
+      "complexityScore": 9,
       "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the command management system into subtasks covering: 1) Command model design and implementation, 2) UI for command CRUD operations, 3) Discord API synchronization mechanism, and 4) Permission and validation systems",
-      "reasoning": "This task has considerable complexity due to the need to synchronize commands with Discord's API, implement proper validation, and manage permissions. The system needs to handle both global and guild-specific commands with different structures."
+      "expansionPrompt": "List the subtasks for identifying non-critical modules, refactoring code for dynamic/lazy loading, updating build configurations, adding loading/error handling UI, and documentation.",
+      "reasoning": "This is a high-complexity architectural change touching module boundaries, build tooling, user experience, and requires careful validation to avoid regressions."
     },
     {
-      "taskId": 6,
-      "taskTitle": "Implement Server (Guild) Management System",
-      "complexityScore": 6,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the server management system into subtasks covering: 1) Guild and GuildSettings models implementation, 2) Server listing and detail views, 3) Server-specific configuration UI, and 4) Guild data synchronization mechanism",
-      "reasoning": "This task involves data modeling, UI development, and synchronization with Discord's API. The complexity comes from managing server-specific settings and ensuring data consistency between the application and Discord."
-    },
-    {
-      "taskId": 7,
-      "taskTitle": "Design and Implement Dashboard Frontend",
-      "complexityScore": 7,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the dashboard frontend implementation into subtasks covering: 1) Base layout and navigation design, 2) BOT management interfaces, 3) Server management pages, 4) Command management UI, and 5) User profile and settings pages",
-      "reasoning": "Frontend development has significant complexity due to the need for responsive design, multiple interconnected pages, and real-time data display. The task requires both design skills and frontend implementation across various system components."
-    },
-    {
-      "taskId": 8,
-      "taskTitle": "Implement Logging System and Error Handling",
-      "complexityScore": 6,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the logging system implementation into subtasks covering: 1) Log model and database structure, 2) Logging middleware and integration points, 3) Dashboard log viewer with filtering, and 4) Notification and alerting system",
-      "reasoning": "This task involves creating a comprehensive system that spans multiple components. The complexity comes from implementing proper error handling, designing an effective logging structure, and creating useful visualization and filtering tools."
-    },
-    {
-      "taskId": 9,
-      "taskTitle": "Implement Real-time Status Updates and WebSocket Support",
+      "taskId": 21,
+      "taskTitle": "Database Schema Cleanup: Remove Obsolete Fields and Tables",
       "complexityScore": 8,
       "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the real-time updates implementation into subtasks covering: 1) Django Channels setup and configuration, 2) WebSocket event broadcasting system, 3) Frontend real-time update integration, and 4) Fallback mechanisms and connection management",
-      "reasoning": "Real-time functionality with WebSockets has high complexity due to the asynchronous nature, need for fallback mechanisms, and integration across both backend and frontend. This requires understanding of WebSocket protocols and handling connection edge cases."
+      "expansionPrompt": "Break down the steps to analyze schema usage, verify references, plan and execute migrations, and document all changes, considering data backup and compliance.",
+      "reasoning": "Database schema changes are sensitive and risky, requiring careful analysis, staged implementation, and rollback strategies to avoid data loss or service disruption."
     },
     {
-      "taskId": 10,
-      "taskTitle": "Configure Docker Deployment and Finalize Documentation",
-      "complexityScore": 6,
+      "taskId": 22,
+      "taskTitle": "Optimize Docker Image Size Through Layer Management and Build Techniques",
+      "complexityScore": 7,
       "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the deployment and documentation task into subtasks covering: 1) Docker and Docker Compose configuration, 2) Environment and production settings, 3) User and API documentation, and 4) Developer documentation and maintenance procedures",
-      "reasoning": "This task combines containerization setup with comprehensive documentation. The complexity comes from ensuring proper container configuration for all services and creating thorough documentation covering multiple user personas and use cases."
+      "expansionPrompt": "Identify the subtasks to analyze current Dockerfiles, implement multi-stage builds and layer optimizations, remove unnecessary files, and document results.",
+      "reasoning": "Image optimization involves several well-understood techniques but can become complex depending on image structure and application dependencies."
+    },
+    {
+      "taskId": 23,
+      "taskTitle": "Implement Build Size Tracking System with Regression Alerts",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail the steps to build a system for measuring, recording, visualizing, and alerting on build artifact sizes, including CI/CD integration and dashboard creation.",
+      "reasoning": "This task requires cross-cutting automation, data storage, visualization, and integration with development workflows, making it moderately complex."
+    },
+    {
+      "taskId": 24,
+      "taskTitle": "Compile Project Optimization Report with Size Reduction Analysis",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "List the steps to collect optimization data, analyze and visualize results, and compile comprehensive technical reports in multiple formats.",
+      "reasoning": "The report is based on prior work and data collection, with main complexity in synthesizing and presenting technical findings clearly."
     }
   ]
 }

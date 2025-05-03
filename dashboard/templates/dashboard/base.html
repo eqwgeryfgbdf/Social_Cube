@@ -19,6 +19,7 @@
     
     <!-- Custom CSS -->
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/image-styles.css' %}" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -64,7 +65,7 @@
                     <button class="btn btn-link text-dark dropdown-toggle" type="button" id="userMenu" 
                             data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="{{ user.profile_image|default:'static/img/default-avatar.png' }}" 
-                             class="rounded-circle" width="32" height="32" alt="{{ user.username }}">
+                             class="img-avatar img-avatar-sm" alt="{{ user.username }}">
                         {{ user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
