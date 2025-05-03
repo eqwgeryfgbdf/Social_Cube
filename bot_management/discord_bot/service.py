@@ -5,9 +5,11 @@ from typing import Dict, Optional, List, Tuple
 import time
 from concurrent.futures import ThreadPoolExecutor
 from django.db import transaction
+from functools import wraps
 
 from bot_management.models import Bot, BotLog
 from .client import SocialCubeBot
+from bot_management.error_handling import recoverable_error, log_error
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -68,6 +70,7 @@ class BotManager:
             
         logger.info("Bot Manager service stopped")
         
+    @recoverable_error
     def start_bot(self, bot_id: int) -> bool:
         """
         Start a specific bot by its ID
@@ -124,6 +127,37 @@ class BotManager:
             # Store references
             self.running_bots[bot_id] = (client, None, bot_thread)
             
+            # Give the bot some time to connect
+            time.sleep(5)  # Wait for 5 seconds
+            
+            # Sync commands after startup
+            try:
+                # Get all active commands for this bot
+                from bot_management.models import Command
+                
+                # Check if bot has any commands to sync
+                has_commands = Command.objects.filter(bot_id=bot_id, is_active=True).exists()
+                
+                if has_commands:
+                    # Sync global commands
+                    self.sync_all_commands(bot_id)
+                    
+                    # Get guilds with guild-specific commands
+                    guild_ids = Command.objects.filter(
+                        bot_id=bot_id,
+                        guild__isnull=False,
+                        is_active=True
+                    ).values_list('guild__guild_id', flat=True).distinct()
+                    
+                    # Sync commands for each guild
+                    for guild_id in guild_ids:
+                        self.sync_all_commands(bot_id, guild_id)
+                        
+                    logger.info(f"Synced all commands for bot {bot_id}")
+            except Exception as e:
+                logger.error(f"Failed to sync commands for bot {bot_id}: {str(e)}")
+                # Continue anyway since the bot is running
+            
             # Log the start
             BotLog.objects.create(
                 bot=bot_model,
@@ -141,6 +175,7 @@ class BotManager:
             logger.error(f"Failed to start bot {bot_id}: {str(e)}")
             return False
             
+    @recoverable_error
     def stop_bot(self, bot_id: int) -> bool:
         """
         Stop a specific bot by its ID
@@ -184,6 +219,7 @@ class BotManager:
             logger.error(f"Failed to stop bot {bot_id}: {str(e)}")
             return False
             
+    @recoverable_error
     def restart_bot(self, bot_id: int) -> bool:
         """
         Restart a specific bot by its ID
@@ -309,5 +345,359 @@ class BotManager:
         except Exception as e:
             logger.error(f"Failed to start active bots: {str(e)}")
             
+    @recoverable_error
+    def sync_command(self, command_id: int) -> bool:
+        """
+        Sync a specific command to Discord
+        
+        Args:
+            command_id: The database ID of the command to sync
+            
+        Returns:
+            bool: True if successfully synced, False otherwise
+        """
+        from bot_management.models import Command
+        
+        try:
+            # Get command from database
+            command = Command.objects.get(id=command_id, is_active=True)
+            
+            # Get the bot client
+            bot_id = command.bot.id
+            if bot_id not in self.running_bots:
+                logger.warning(f"Bot {bot_id} is not running, cannot sync command {command_id}")
+                return False
+                
+            client, _, _ = self.running_bots[bot_id]
+            
+            # Wait until the bot is ready
+            try:
+                asyncio.run_coroutine_threadsafe(client.wait_until_ready(timeout=10), client.loop).result(timeout=15)
+            except (asyncio.TimeoutError, concurrent.futures.TimeoutError):
+                logger.error(f"Timed out waiting for bot {bot_id} to be ready")
+                return False
+                
+            # Convert command to Discord format
+            command_data = command.to_discord_json()
+            
+            # Create or update the command on Discord
+            if command.guild:
+                # Guild-specific command
+                guild_id = int(command.guild.guild_id)
+                
+                result = asyncio.run_coroutine_threadsafe(
+                    client._sync_guild_command(guild_id, command.id, command_data),
+                    client.loop
+                ).result(timeout=15)
+            else:
+                # Global command
+                result = asyncio.run_coroutine_threadsafe(
+                    client._sync_global_command(command.id, command_data),
+                    client.loop
+                ).result(timeout=15)
+                
+            if result and 'id' in result:
+                # Update the command_id
+                command.command_id = result['id']
+                command.save(update_fields=['command_id'])
+                
+                logger.info(f"Synced command {command.name} (ID: {command_id}) to Discord")
+                return True
+            else:
+                logger.error(f"Failed to sync command {command.name} (ID: {command_id})")
+                return False
+                
+        except Command.DoesNotExist:
+            logger.error(f"Command {command_id} not found or not active")
+            return False
+        except Exception as e:
+            logger.error(f"Failed to sync command {command_id}: {str(e)}")
+            return False
+            
+    @recoverable_error
+    def delete_command(self, command_id: int) -> bool:
+        """
+        Delete a specific command from Discord
+        
+        Args:
+            command_id: The database ID of the command to delete
+            
+        Returns:
+            bool: True if successfully deleted, False otherwise
+        """
+        from bot_management.models import Command
+        
+        try:
+            # Get command from database
+            command = Command.objects.get(id=command_id)
+            
+            # If no command_id, it was never synced to Discord
+            if not command.command_id:
+                logger.warning(f"Command {command_id} was never synced to Discord, nothing to delete")
+                return True
+                
+            # Get the bot client
+            bot_id = command.bot.id
+            if bot_id not in self.running_bots:
+                logger.warning(f"Bot {bot_id} is not running, cannot delete command {command_id}")
+                return False
+                
+            client, _, _ = self.running_bots[bot_id]
+            
+            # Wait until the bot is ready
+            try:
+                asyncio.run_coroutine_threadsafe(client.wait_until_ready(timeout=10), client.loop).result(timeout=15)
+            except (asyncio.TimeoutError, concurrent.futures.TimeoutError):
+                logger.error(f"Timed out waiting for bot {bot_id} to be ready")
+                return False
+                
+            # Delete the command from Discord
+            if command.guild:
+                # Guild-specific command
+                guild_id = int(command.guild.guild_id)
+                discord_command_id = command.command_id
+                
+                success = asyncio.run_coroutine_threadsafe(
+                    client._delete_guild_command(guild_id, discord_command_id),
+                    client.loop
+                ).result(timeout=15)
+            else:
+                # Global command
+                discord_command_id = command.command_id
+                
+                success = asyncio.run_coroutine_threadsafe(
+                    client._delete_global_command(discord_command_id),
+                    client.loop
+                ).result(timeout=15)
+                
+            if success:
+                # Clear the command_id
+                command.command_id = None
+                command.save(update_fields=['command_id'])
+                
+                logger.info(f"Deleted command {command.name} (ID: {command_id}) from Discord")
+                return True
+            else:
+                logger.error(f"Failed to delete command {command.name} (ID: {command_id})")
+                return False
+                
+        except Command.DoesNotExist:
+            logger.error(f"Command {command_id} not found")
+            return False
+        except Exception as e:
+            logger.error(f"Failed to delete command {command_id}: {str(e)}")
+            return False
+            
+    @recoverable_error
+    def sync_all_commands(self, bot_id: int, guild_id: str = None) -> bool:
+        """
+        Sync all commands for a bot, optionally filtered by guild
+        
+        Args:
+            bot_id: The database ID of the bot
+            guild_id: The Discord ID of the guild, or None for global commands
+            
+        Returns:
+            bool: True if successfully synced, False otherwise
+        """
+        from bot_management.models import Command, Guild
+        
+        try:
+            # Get the bot client
+            if bot_id not in self.running_bots:
+                logger.warning(f"Bot {bot_id} is not running, cannot sync commands")
+                return False
+                
+            client, _, _ = self.running_bots[bot_id]
+            
+            # Wait until the bot is ready
+            try:
+                asyncio.run_coroutine_threadsafe(client.wait_until_ready(timeout=10), client.loop).result(timeout=15)
+            except (asyncio.TimeoutError, concurrent.futures.TimeoutError):
+                logger.error(f"Timed out waiting for bot {bot_id} to be ready")
+                return False
+                
+            # Get active commands for this bot
+            commands_query = Command.objects.filter(bot_id=bot_id, is_active=True)
+            
+            if guild_id:
+                # Guild-specific commands
+                try:
+                    guild = Guild.objects.get(bot_id=bot_id, guild_id=guild_id)
+                    commands_query = commands_query.filter(guild=guild)
+                except Guild.DoesNotExist:
+                    logger.error(f"Guild {guild_id} not found for bot {bot_id}")
+                    return False
+                    
+                # Prepare command data
+                commands_data = [cmd.to_discord_json() for cmd in commands_query]
+                
+                # Sync all commands at once
+                result = asyncio.run_coroutine_threadsafe(
+                    client._bulk_sync_guild_commands(int(guild_id), commands_data),
+                    client.loop
+                ).result(timeout=30)  # Longer timeout for bulk operations
+                
+                # Update command IDs in the database
+                if result:
+                    self._update_command_ids(commands_query, result)
+                    logger.info(f"Synced {len(commands_data)} commands for bot {bot_id} in guild {guild_id}")
+                    return True
+                else:
+                    logger.error(f"Failed to sync commands for bot {bot_id} in guild {guild_id}")
+                    return False
+            else:
+                # Global commands
+                commands_query = commands_query.filter(guild__isnull=True)
+                
+                # Prepare command data
+                commands_data = [cmd.to_discord_json() for cmd in commands_query]
+                
+                # Sync all commands at once
+                result = asyncio.run_coroutine_threadsafe(
+                    client._bulk_sync_global_commands(commands_data),
+                    client.loop
+                ).result(timeout=30)  # Longer timeout for bulk operations
+                
+                # Update command IDs in the database
+                if result:
+                    self._update_command_ids(commands_query, result)
+                    logger.info(f"Synced {len(commands_data)} global commands for bot {bot_id}")
+                    return True
+                else:
+                    logger.error(f"Failed to sync global commands for bot {bot_id}")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"Failed to sync all commands for bot {bot_id}: {str(e)}")
+            return False
+            
+    def _update_command_ids(self, commands_query, result_commands):
+        """
+        Update command IDs in the database based on the response from Discord
+        
+        Args:
+            commands_query: QuerySet of Command objects
+            result_commands: List of command data from Discord API
+        """
+        name_to_id = {cmd['name']: cmd['id'] for cmd in result_commands if 'name' in cmd and 'id' in cmd}
+        
+        for command in commands_query:
+            if command.name in name_to_id:
+                command.command_id = name_to_id[command.name]
+        
+        # Bulk update to improve performance
+        Command.objects.bulk_update(commands_query, ['command_id'])
+        
+    @recoverable_error
+    def sync_guild(self, bot_id: int, guild_id: str) -> bool:
+        """
+        Sync a specific guild with Discord API
+        
+        Args:
+            bot_id: The database ID of the bot
+            guild_id: The Discord ID of the guild to sync
+            
+        Returns:
+            bool: True if successfully synced, False otherwise
+        """
+        # Check if bot is running
+        if bot_id not in self.running_bots:
+            logger.warning(f"Bot {bot_id} is not running, cannot sync guild {guild_id}")
+            return False
+            
+        client, _, _ = self.running_bots[bot_id]
+        
+        try:
+            # Find the guild in the bot's guilds
+            discord_guild = None
+            
+            # Wait until the bot is ready
+            try:
+                asyncio.run_coroutine_threadsafe(client.wait_until_ready(timeout=10), client.loop).result(timeout=15)
+                
+                # Get the guild by ID
+                discord_guild = asyncio.run_coroutine_threadsafe(
+                    client.fetch_guild(int(guild_id)),
+                    client.loop
+                ).result(timeout=15)
+                
+            except (asyncio.TimeoutError, concurrent.futures.TimeoutError):
+                logger.error(f"Timed out waiting for bot {bot_id} to be ready")
+                return False
+            except Exception as e:
+                logger.error(f"Failed to fetch guild {guild_id}: {str(e)}")
+                return False
+                
+            if not discord_guild:
+                logger.error(f"Guild {guild_id} not found for bot {bot_id}")
+                return False
+                
+            # Sync the guild to the database
+            asyncio.run_coroutine_threadsafe(
+                client._sync_guild_to_db(discord_guild),
+                client.loop
+            ).result(timeout=15)
+            
+            # Sync the guild's channels
+            asyncio.run_coroutine_threadsafe(
+                client._sync_guild_channels(discord_guild),
+                client.loop
+            ).result(timeout=30)  # Longer timeout for channels
+            
+            logger.info(f"Successfully synced guild {guild_id} for bot {bot_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to sync guild {guild_id} for bot {bot_id}: {str(e)}")
+            return False
+            
+    @recoverable_error
+    def sync_all_guilds(self, bot_id: int) -> bool:
+        """
+        Sync all guilds for a bot with Discord API
+        
+        Args:
+            bot_id: The database ID of the bot
+            
+        Returns:
+            bool: True if successfully synced, False otherwise
+        """
+        # Check if bot is running
+        if bot_id not in self.running_bots:
+            logger.warning(f"Bot {bot_id} is not running, cannot sync guilds")
+            return False
+            
+        client, _, _ = self.running_bots[bot_id]
+        
+        try:
+            # Wait until the bot is ready
+            try:
+                asyncio.run_coroutine_threadsafe(client.wait_until_ready(timeout=10), client.loop).result(timeout=15)
+            except (asyncio.TimeoutError, concurrent.futures.TimeoutError):
+                logger.error(f"Timed out waiting for bot {bot_id} to be ready")
+                return False
+                
+            # Sync all guilds
+            asyncio.run_coroutine_threadsafe(
+                client._sync_all_guilds(),
+                client.loop
+            ).result(timeout=60)  # Longer timeout for bulk operation
+            
+            # Log success
+            from bot_management.models import BotLog
+            BotLog.objects.create(
+                bot_id=bot_id,
+                event_type="ALL_GUILDS_SYNCED",
+                description=f"All guilds synced for bot {bot_id}"
+            )
+            
+            logger.info(f"Successfully synced all guilds for bot {bot_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to sync all guilds for bot {bot_id}: {str(e)}")
+            return False
+
 # Create the singleton instance
 bot_manager = BotManager()

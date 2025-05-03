@@ -7,8 +7,10 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from rest_framework.authtoken.views import obtain_auth_token
+from config.health_views import health_check
 
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('dashboard/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('bots/', include(('bot_management.urls', 'bot_management'), namespace='bot_management')),

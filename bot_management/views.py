@@ -7,7 +7,10 @@ from django.views.decorators.http import require_POST
 from dashboard.decorators import discord_login_required
 from .models import Bot, BotLog
 from .forms import BotForm, BotLogForm
+from .error_handling import with_bot_error_handling
+from logging_system.utils import log_error
 import time
+import functools
 
 @discord_login_required
 def index(request):
@@ -132,6 +135,7 @@ def bot_update(request, bot_id):
 
 @discord_login_required
 @require_POST
+@with_bot_error_handling(bot_field='bot_id')
 def bot_delete(request, bot_id):
     """View to delete a bot"""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -151,6 +155,7 @@ def bot_delete(request, bot_id):
 
 @discord_login_required
 @require_POST
+@with_bot_error_handling(bot_field='bot_id')
 def toggle_bot_status(request, bot_id):
     """AJAX view to toggle a bot's active status"""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -193,6 +198,7 @@ def bot_logs(request, bot_id):
 
 @discord_login_required
 @require_POST
+@with_bot_error_handling(bot_field='bot_id')
 def start_bot(request, bot_id):
     """View to start a bot"""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -220,6 +226,7 @@ def start_bot(request, bot_id):
 
 @discord_login_required
 @require_POST
+@with_bot_error_handling(bot_field='bot_id')
 def stop_bot(request, bot_id):
     """View to stop a bot"""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -241,6 +248,7 @@ def stop_bot(request, bot_id):
 
 @discord_login_required
 @require_POST
+@with_bot_error_handling(bot_field='bot_id')
 def restart_bot(request, bot_id):
     """View to restart a bot"""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)

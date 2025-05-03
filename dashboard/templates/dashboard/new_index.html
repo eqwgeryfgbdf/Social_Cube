@@ -107,6 +107,80 @@
             </div>
         </div>
 
+        <!-- BOT Status Cards -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">機器人狀態</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Bot status cards -->
+                {% for bot_status in bot_statuses %}
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <!-- Header with status indicator -->
+                    <div class="border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="mr-3 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                                <i class="fas fa-robot text-primary-600 dark:text-primary-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-800 dark:text-white truncate max-w-[180px]">{{ bot_status.bot.name }}</h3>
+                                <div class="flex items-center">
+                                    <span class="inline-flex h-2 w-2 rounded-full {% if bot_status.bot.is_active %}bg-green-500{% else %}bg-red-500{% endif %} mr-1"></span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">{% if bot_status.bot.is_active %}在線{% else %}離線{% endif %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'dashboard:bot:detail' bot_status.bot.id %}" class="text-primary-600 dark:text-primary-400 hover:underline">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Bot metrics -->
+                    <div class="p-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">伺服器</p>
+                                <p class="text-lg font-bold text-gray-800 dark:text-white">{{ bot_status.servers }}</p>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">命令</p>
+                                <p class="text-lg font-bold text-gray-800 dark:text-white">{{ bot_status.commands }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Action buttons -->
+                        <div class="mt-4 flex justify-between">
+                            {% if bot_status.bot.is_active %}
+                            <button type="button" class="px-3 py-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                                <i class="fas fa-stop-circle mr-1"></i> 停止
+                            </button>
+                            {% else %}
+                            <button type="button" class="px-3 py-2 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
+                                <i class="fas fa-play-circle mr-1"></i> 啟動
+                            </button>
+                            {% endif %}
+                            <button type="button" class="px-3 py-2 text-xs text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors">
+                                <i class="fas fa-sync-alt mr-1"></i> 同步
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6 text-center">
+                    <div class="text-gray-500 dark:text-gray-400 mb-4">
+                        <i class="fas fa-robot text-4xl mb-3"></i>
+                        <p>您目前還沒有已添加的機器人</p>
+                    </div>
+                    <a href="{% url 'dashboard:bot:add' %}" class="inline-flex items-center justify-center px-4 py-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white rounded transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        <span>添加機器人</span>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
         <!-- 兩欄式佈局 -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- 左側 (2/3寬度) -->
@@ -197,21 +271,25 @@
                                             </div>
                                             <div>
                                                 <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ bot.name }}</h4>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                    {% if bot.is_active %}
-                                                        <span class="text-green-500 dark:text-green-400">
-                                                            <i class="fas fa-circle text-xs"></i> 運行中
-                                                        </span>
-                                                    {% else %}
-                                                        <span class="text-gray-400 dark:text-gray-500">
-                                                            <i class="fas fa-circle text-xs"></i> 已停止
-                                                        </span>
-                                                    {% endif %}
-                                                </p>
+                                                <div class="flex items-center mt-1">
+                                                    <span class="inline-flex h-2 w-2 rounded-full {% if bot.is_active %}bg-green-500{% else %}bg-red-500{% endif %} mr-1"></span>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {% if bot.is_active %}在線{% else %}離線{% endif %}
+                                                        {% if bot.guilds.count %} • {{ bot.guilds.count }} 個伺服器{% endif %}
+                                                        {% if bot.command_count %} • {{ bot.command_count }} 個命令{% endif %}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                         <a href="{% url 'dashboard:bot:detail' bot.id %}" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
                                             <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% empty %}
+                                    <li class="p-4 text-center text-gray-500 dark:text-gray-400">
+                                        <p>尚未添加機器人</p>
+                                        <a href="{% url 'dashboard:bot:add' %}" class="mt-2 inline-block text-primary-600 dark:text-primary-400 hover:underline">
+                                            <i class="fas fa-plus mr-1"></i>添加機器人
                                         </a>
                                     </li>
                                 {% endfor %}

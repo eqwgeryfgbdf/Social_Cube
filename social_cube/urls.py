@@ -24,6 +24,9 @@ path('bots/', include(('bot_management.urls', 'bot_management'), namespace='bot_
     
 # API endpoints
 path('api/', include(('api.urls', 'api'), namespace='api')),
+
+# Logging system
+path('logs/', include(('logging_system.urls', 'logging_system'), namespace='logging_system')),
     
     # Authentication
     path('accounts/', include('allauth.urls')),  # Django-allauth URLs

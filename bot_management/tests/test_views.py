@@ -1,11 +1,12 @@
-from django.test import TestCase, Client
+from django.test import Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from bot_management.models import Bot, BotLog
 from django.contrib.messages import get_messages
 
+from bot_management.models import Bot, BotLog
+from bot_management.tests.test_models import BotBaseTestCase
 
-class BotViewsTest(TestCase):
+class BotViewsTest(BotBaseTestCase):
     """Tests for the bot_management views"""
     
     def setUp(self):

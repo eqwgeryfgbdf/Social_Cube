@@ -6,6 +6,7 @@ app_name = 'dashboard'
 # Bot management URLs
 bot_patterns = [
     path('', views.bot_list, name='list'),
+    path('overview/', views.bot_overview, name='overview'),
     path('add/', views.bot_add, name='add'),
     path('<int:bot_id>/', views.bot_detail, name='detail'),
     path('<int:bot_id>/toggle/', views.bot_toggle, name='toggle'),
@@ -20,7 +21,10 @@ urlpatterns = [
     # Main views
     path('', views.index, name='index'),
     path('profile/', views.profile, name='profile'),
+    path('settings/', views.user_settings, name='user_settings'),
     path('servers/', views.server_list, name='servers'),
+    path('servers/<int:server_id>/', views.server_detail, name='server_detail'),
+    path('servers/<int:server_id>/edit/', views.server_edit, name='server_edit'),
     path('stats/', views.stats, name='stats'),
     
     # OAuth2 endpoints

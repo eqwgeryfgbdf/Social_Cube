@@ -1,4 +1,4 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'dashboard/new_base.html' %}
 {% load static %}
 
 {% block content %}
@@ -69,11 +69,56 @@
                 </div>
             {% endif %}
             
-            <div class="mt-8 text-center">
-                <a href="{% url 'account_logout' %}" 
-                   class="inline-block bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                    Logout
-                </a>
+            <!-- Edit Profile Form -->
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Edit Profile</h3>
+                
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="update_profile" value="1">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ profile_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                            {{ profile_form.first_name }}
+                            {% if profile_form.first_name.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ profile_form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ profile_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                            {{ profile_form.last_name }}
+                            {% if profile_form.last_name.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ profile_form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ profile_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        {{ profile_form.email }}
+                        {% if profile_form.email.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ profile_form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex justify-between items-center pt-4">
+                        <a href="{% url 'dashboard:user_settings' %}" class="inline-block bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                            Dashboard Settings
+                        </a>
+                        
+                        <div>
+                            <button type="submit" class="inline-block bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                                Save Changes
+                            </button>
+                            
+                            <a href="{% url 'account_logout' %}" class="inline-block ml-2 bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </form>
             </div>
             
         {% else %}

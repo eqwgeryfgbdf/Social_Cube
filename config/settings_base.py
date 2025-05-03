@@ -48,6 +48,7 @@ PROJECT_APPS = [
     'dashboard.apps.DashboardConfig',
     'bot_management',
     'api',
+    'logging_system',
 ]
 
 # Combined apps list
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',  # Django-allauth middleware
     'dashboard.middleware.RequestLogMiddleware',  # Request logging middleware (only in debug mode)
+    'logging_system.middleware.RequestLoggingMiddleware',  # System-wide request logging
 ]
 
 # URL configuration

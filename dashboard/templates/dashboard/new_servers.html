@@ -110,12 +110,12 @@
                         </div>
                         
                         <div class="mt-4 flex space-x-2">
-                            <a href="{% url 'dashboard:server:detail' server.id %}" class="flex-1 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2 px-3 rounded text-sm text-center transition-colors">
+                            <a href="{% url 'dashboard:server_detail' server.id %}" class="flex-1 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white py-2 px-3 rounded text-sm text-center transition-colors">
                                 管理
                             </a>
-                            <button type="button" data-server-id="{{ server.id }}" class="server-settings-btn flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors">
+                            <a href="{% url 'dashboard:server_edit' server.id %}" class="flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors">
                                 <i class="fas fa-cog"></i>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,96 @@
 version: '3.8'
 
+# Social Cube Docker Compose Configuration
+# This file defines all the services needed to run the Social Cube application
+
 services:
+  # Main Django web application service
   web:
+    build: .
+    restart: always
+    volumes:
+      - static_volume:/app/staticfiles  # For static files
+      - media_volume:/app/media  # For user uploaded files
+      - logs_volume:/app/logs  # For application logs
+    env_file:
+      - .env  # Load environment variables from .env file
+    environment:
+      - DJANGO_AUTO_MIGRATE=true  # Automatically run migrations on startup
+      - DJANGO_COLLECTSTATIC=true  # Automatically collect static files on startup
+      - REDIS_HOST=redis  # Point to the Redis service
+      - REDIS_PORT=6379
+    depends_on:
+      - db  # Ensures database is started before web service
+      - redis  # Ensures Redis is started before web service
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: >
+      /usr/local/bin/wait-for db 5432 gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 config.wsgi:application
+
+  # PostgreSQL database service
+  db:
+    image: postgres:14-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/  # Persistent database storage
+      - ./backups:/backups  # Volume for database backups
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # Redis for caching and WebSocket channels
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - redis_data:/data  # Persistent Redis storage
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx web server for handling HTTP requests and static files
+  nginx:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - static_volume:/app/staticfiles  # Access to static files
+      - media_volume:/app/media  # Access to media files
+      - ./nginx:/etc/nginx/conf.d  # Nginx configuration files
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+
+  # ASGI service for WebSocket support
+  asgi:
     build: .
     restart: always
     volumes:
@@ -10,48 +99,28 @@ services:
       - logs_volume:/app/logs
     env_file:
       - .env
+    environment:
+      - DJANGO_AUTO_MIGRATE=false  # Don't run migrations in ASGI service
+      - DJANGO_COLLECTSTATIC=false  # Don't collect static files in ASGI service
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - db
-    networks:
-      - app_network
-    command: >
-      bash -c "python manage.py migrate &&
-              gunicorn --bind 0.0.0.0:8000 --workers 3 config.wsgi:application"
-
-  db:
-    image: postgres:14-alpine
-    restart: always
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_DB=${DB_NAME}
-    networks:
-      - app_network
-
-  nginx:
-    image: nginx:alpine
-    restart: always
-    volumes:
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
-      - ./nginx:/etc/nginx/conf.d
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
+      - redis
       - web
     networks:
       - app_network
+    command: >
+      /usr/local/bin/wait-for web 8000 daphne -b 0.0.0.0 -p 8001 realtime.asgi:application
 
+# Network configuration
 networks:
   app_network:
 
+# Volume configuration for persistent data
 volumes:
-  postgres_data:
-  static_volume:
-  media_volume:
-  logs_volume:
+  postgres_data:  # Database files
+  static_volume:  # Static files (CSS, JS, etc.)
+  media_volume:   # User uploaded files
+  logs_volume:    # Application logs
+  redis_data:     # Redis data
